@@ -9,8 +9,8 @@ class Token(ILocation):
     text: str
     location: Location
     order: int
+    entities: List[Entity] = field(default_factory=lambda: [])
 
-    entities: List[Entity] = field(default=list)
     def add_token(self, entity: Entity):
         self.entities.append(entity)
 
