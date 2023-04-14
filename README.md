@@ -1,5 +1,5 @@
 # extr-ds
-> Library to quickly build basic datasets for Named Entity Recognition (NER) and Relation Extraction (RE) Machine Learning tasks. <br /><br />Extension of the [extr]('https://github.com/dpasse/extr') library.
+> Library to quickly build basic datasets for Named Entity Recognition (NER) and Relation Extraction (RE) Machine Learning tasks.
 
 <br />
 
