@@ -7,7 +7,12 @@ from extr_ds.tokenizer import tokenizer
 
 
 def test_get_entities():
-    token_groups = list(tokenizer('Ted is a pitcher.', [['Ted', 'is', 'a', 'pitcher', '.']]))
+    token_groups = list(
+        tokenizer(
+            'Ted is a pitcher.',
+            [['Ted', 'is', 'a', 'pitcher', '.']]
+        )
+    )
 
     assert len(token_groups) == 1
     assert token_groups[0].location.start == 0
