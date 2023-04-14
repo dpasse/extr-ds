@@ -18,7 +18,7 @@ build:
 clean-build-win:
 	rmdir /S .\build
 	rmdir /S .\dist
-	rmdir /S .\src\extr.egg-info
+	rmdir /S .\src\extr-ds.egg-info
 
 upload:
 	twine upload dist/*

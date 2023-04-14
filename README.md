@@ -38,3 +38,17 @@ labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 ##     ['B-PERSON', 'O', 'O', 'O', 'O', 'O']
 ## ]
 ```
+
+### 2. Verify Actual vs Model
+
+```python
+from extr-ds.merges import check_for_differences
+
+differences_in_labels = check_for_differences(
+    ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O'],
+    ['B-PERSON', 'O', 'O', 'O', 'B-POSITION', 'O']
+)
+
+## differences_in_labels.has_diffs == True
+## differences_in_labels.diffs_between_labels = [1]
+```
