@@ -42,7 +42,7 @@ labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 ### 2. Find and define the type of difference between labels
 
 ```python
-from extr-ds.merges import check_for_differences
+from extr-ds.validators import check_for_differences
 
 differences_in_labels = check_for_differences(
     ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O'],
