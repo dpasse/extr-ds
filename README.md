@@ -39,7 +39,7 @@ labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 ## ]
 ```
 
-### 2. Verify Actual vs Model
+### 2. Find and define the type of difference between labels
 
 ```python
 from extr-ds.merges import check_for_differences
@@ -50,5 +50,17 @@ differences_in_labels = check_for_differences(
 )
 
 ## differences_in_labels.has_diffs == True
-## differences_in_labels.diffs_between_labels = [1]
+## differences_in_labels.diffs_between_labels == [
+##      <Difference index=1, diff_type=DifferenceTypes.S2_MISSING>
+## ]
+
+differences_in_labels = check_for_differences(
+    ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O'],
+    ['B-PERSON', 'B-PERSON', 'O', 'O', 'B-POSITION', 'O']
+)
+
+## differences_in_labels.has_diffs == True
+## differences_in_labels.diffs_between_labels == [
+##      <Difference index=1, diff_type=DifferenceTypes.MISMATCH>
+## ]
 ```
