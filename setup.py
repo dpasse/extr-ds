@@ -11,7 +11,7 @@ extr==0.0.5
 setuptools.setup(
     name='extr-ds',
     version='0.0.1',
-    description='',
+    description='Library to quickly build basic datasets for Named Entity Recognition (NER) and Relation Extraction (RE) Machine Learning tasks.',
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
     install_requires=install_requires.strip(),
