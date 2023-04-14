@@ -11,11 +11,14 @@ class Token(ILocation):
     order: int
     entities: List[Entity] = field(default_factory=lambda: [])
 
-    def add_token(self, entity: Entity):
+    def add_entity(self, entity: Entity):
         self.entities.append(entity)
 
     def __len__(self) -> int:
         return len(self.entities)
+
+    def __str__(self) -> str:
+        return self.text
 
     def __repr__(self) -> str:
         return f'<Token text="{self.text}", location={repr(self.location)}, order={self.order}>'
@@ -24,3 +27,11 @@ class Token(ILocation):
 class TokenGroup(ILocation):
     location: Location
     tokens: List[Token]
+
+@dataclass
+class Label:
+    tokens: List[Token]
+    labels: List[str]
+
+    def __repr__(self) -> str:
+        return f'<Label tokens={self.tokens}, labels={self.labels}>'

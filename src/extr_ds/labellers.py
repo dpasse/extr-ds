@@ -1,6 +1,6 @@
 from typing import List, Callable, Generator, Iterator, cast
 from extr import Entity, EntityExtractor
-from .models import TokenGroup
+from .models import TokenGroup, Label
 from .tokenizer import tokenizer
 
 
@@ -9,13 +9,13 @@ class IOB():
         self._sentence_tokenizer = sentence_tokenizer
         self._entity_extractor = entity_extractor
 
-    def label(self, text: str) -> Generator[List[str], None, None]:
+    def label(self, text: str) -> Generator[Label, None, None]:
         entities = self._entity_extractor.get_entities(text)
         token_groups = tokenizer(text, self._sentence_tokenizer(text))
 
         return self.__merge(token_groups, entities)
 
-    def __merge(self, token_groups: Generator[TokenGroup, None, None], entities: List[Entity]) -> Generator[List[str], None, None]:
+    def __merge(self, token_groups: Generator[TokenGroup, None, None], entities: List[Entity]) -> Generator[Label, None, None]:
         for token_group in token_groups:
             tokens = list(enumerate(token_group.tokens))
             labels = ['O' for _ in range(len(tokens))]
@@ -31,6 +31,8 @@ class IOB():
                     labels[i] = 'B-' if used_counter == 0 else 'I-'
                     labels[i] += entity.label
 
+                    token.add_entity(entity)
+
                     used_counter += 1
 
-            yield labels
+            yield Label(token_group.tokens, labels)

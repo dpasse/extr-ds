@@ -37,4 +37,4 @@ def test_label():
         ['B-PERSON', 'O', 'O', 'O', 'O', 'O']
     ]
 
-    assert list(observations) == expected
+    assert list(map(lambda item: item.labels, observations)) == expected

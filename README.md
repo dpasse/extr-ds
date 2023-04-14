@@ -34,8 +34,8 @@ sentence_tokenizer = ## 3rd party tokenizer ##
 labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 
 ## labels ==  [
-##     ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O'],
-##     ['B-PERSON', 'O', 'O', 'O', 'O', 'O']
+##     <Label tokens=..., labels=['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O']>,
+##     <Label tokens=..., labels=['B-PERSON', 'O', 'O', 'O', 'O', 'O']>
 ## ]
 ```
 
