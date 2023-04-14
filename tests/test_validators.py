@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.join('../src'))
 
 from extr_ds.validators import check_for_differences, DifferenceTypes
 
+
 def test_check_for_differences_should_return_missing_s2_at_index_1():
     differences = check_for_differences(
         ['B-PERSON', 'I-PERSON', 'O', 'O'],

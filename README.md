@@ -19,7 +19,7 @@ text = 'Ted Johnson is a pitcher. Ted went to my school.'
 
 ```python
 from extr import RegEx, RegExLabel, EntityExtactor
-from extr-ds import IOB
+from extr_ds import IOB
 
 entity_extractor = EntityExtactor([
     RegExLabel('PERSON', [
@@ -42,7 +42,7 @@ labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 ### 2. Find and define the type of difference between labels
 
 ```python
-from extr-ds.validators import check_for_differences
+from extr_ds.validators import check_for_differences
 
 differences_in_labels = check_for_differences(
     ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O'],
