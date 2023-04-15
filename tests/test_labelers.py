@@ -6,7 +6,7 @@ from extr import RegEx, RegExLabel, EntityExtractor
 
 sys.path.insert(0, os.path.join('../src'))
 
-from extr_ds.labellers import IOB
+from extr_ds.labelers import IOB
 
 
 def test_label():

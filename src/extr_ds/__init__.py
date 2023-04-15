@@ -1,1 +1,1 @@
-from .labellers import IOB
+from .labelers import IOB
