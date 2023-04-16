@@ -25,4 +25,10 @@ def tokenizer(text: str, sentences: Union[Generator[List[str], None, None], List
             offset += end
             counter += 1
 
-        yield TokenGroup(Location(sentence_start, offset), tokens_in_sentence)
+        sentence_text = text[sentence_start:offset]
+
+        yield TokenGroup(
+            Location(sentence_start, offset),
+            sentence_text,
+            tokens_in_sentence
+        )

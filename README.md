@@ -39,7 +39,44 @@ labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 ## ]
 ```
 
-### 2. Find and define the type of difference between labels
+### 2. Annotate for Relation Extraction Task (RE)
+
+```python
+from extr import RegExRelationLabelBuilder, RelationExtractor
+from extr_ds.labelers import RelationClassification
+
+person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
+    .add_e1_to_e2(
+        'PERSON',
+        [
+            r'\s+is\s+a\s+',
+        ],
+        'POSITION'
+    ) \
+    .build()
+
+labeler = RelationClassification(
+    sentence_tokenizer,
+    EntityExtractor([
+        RegExLabel('PERSON', [
+            RegEx([r'(ted johnson|bob)'], re.IGNORECASE)
+        ]),
+        RegExLabel('POSITION', [
+            RegEx([r'pitcher'], re.IGNORECASE)
+        ]),
+    ]),
+    RelationExtractor([person_to_position_relationship]),
+    [('PERSON', 'POSITION', 'NO_RELATION')],
+)
+
+labels = labeler.label(text)
+
+## labels == [
+##    <RelationLabel sentence="<e1>Ted Johnson</e1> is a <e2>pitcher</e2>." label="is_a">
+## ]
+```
+
+### 3. Find and define the type of difference between labels
 
 ```python
 from extr_ds.validators import check_for_differences

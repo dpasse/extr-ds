@@ -1,6 +1,6 @@
 import os
-import sys
 import re
+import sys
 import pytest
 from typing import Generator, List
 from extr import RegEx, RegExLabel, EntityExtractor
