@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from dataclasses import dataclass
 from enum import Enum
 
@@ -28,17 +28,22 @@ class Differences:
     def has_diffs(self) -> bool:
         return len(self.diffs_between_labels) > 0
 
-def check_for_differences(labels_1: List[str], labels_2: List[str]) -> Differences:
+EMPTY_SET = ['O', 'NO-RELATION']
+
+def check_for_differences(l1: Union[List[str], str], l2: Union[List[str], str]) -> Differences:
     def get_difference_type(label_1: str, label_2: str) -> DifferenceTypes:
         diff_type = DifferenceTypes.NONE
-        if label_2 == 'O' or len(label_2) == 0:
+        if label_2 in EMPTY_SET or len(label_2) == 0:
             diff_type = DifferenceTypes.S2_MISSING
-        elif label_1 == 'O' or len(label_1) == 0:
+        elif label_1 in EMPTY_SET or len(label_1) == 0:
             diff_type = DifferenceTypes.S1_MISSING
         else:
             diff_type = DifferenceTypes.MISMATCH
 
         return diff_type
+
+    labels_1 = [l1] if isinstance(l1, str) else l1
+    labels_2 = [l2] if isinstance(l2, str) else l2
 
     assert len(labels_1) == len(labels_2)
 

@@ -36,7 +36,7 @@ def test_check_for_differences_should_return_missing_s1_at_index_1():
     assert difference.diff_type == DifferenceTypes.S1_MISSING
     assert difference.index == 1
 
-def test_check_for_differences_should_return_mismatch_when_both_are_labelled():
+def test_check_for_differences_should_return_mismatch_when_both_are_labeled():
     differences = check_for_differences(
         ['B-PERSON', 'I-PERSON', 'O', 'O'],
         ['B-PERSON', 'B-POSITION', 'O', 'O']
@@ -58,3 +58,17 @@ def test_check_for_differences_should_return_false_when_no_diffs_exist():
     )
 
     assert not differences.has_diffs
+
+def test_check_for_differences_should_run_scalars_as_well():
+    differences = check_for_differences(
+        'is_na',
+        'NO-RELATION'
+    )
+
+    assert differences.has_diffs
+    assert len(differences.diffs_between_labels) == 1
+
+    difference = differences.diffs_between_labels[0]
+
+    assert difference.diff_type == DifferenceTypes.S2_MISSING
+    assert difference.index == 0
