@@ -1,7 +1,8 @@
 from typing import List, Callable, Generator, Iterator, cast
-from extr import Entity, EntityExtractor
-from ..models import TokenGroup, Label
-from ..tokenizer import tokenizer
+from extr import Entity, TokenGroup
+from extr.entities import EntityExtractor
+from extr.tokenizers import tokenizer
+from ..models import Label
 
 
 class IOB():

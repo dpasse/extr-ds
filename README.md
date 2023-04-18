@@ -18,8 +18,9 @@ text = 'Ted Johnson is a pitcher. Ted went to my school.'
 ### 1. Label Entities for Named-Entity Recognition Task (NER)
 
 ```python
-from extr import RegEx, RegExLabel, EntityExtactor
-from extr_ds import IOB
+from extr import RegEx, RegExLabel
+from extr.entities import EntityExtactor
+from extr_ds.labelers import IOB
 
 entity_extractor = EntityExtactor([
     RegExLabel('PERSON', [
@@ -42,7 +43,9 @@ labels = IOB(sentence_tokenizer, entity_extractor).label(text)
 ### 2. Annotate for Relation Extraction Task (RE)
 
 ```python
-from extr import RegExRelationLabelBuilder, RelationExtractor
+from extr.entities import EntityExtractor
+from extr.relations import RegExRelationLabelBuilder, \
+                           RelationExtractor
 from extr_ds.labelers import RelationClassification
 
 person_to_position_relationship = RegExRelationLabelBuilder('is_a') \

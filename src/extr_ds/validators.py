@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from enum import Enum
 
 
-# class syntax
 class DifferenceTypes(Enum):
     NONE = 0
     MISMATCH = 1
