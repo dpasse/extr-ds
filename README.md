@@ -1,5 +1,5 @@
 # extr-ds
-> Library to quickly build basic datasets for Named Entity Recognition (NER) and Relation Extraction (RE) Machine Learning tasks.
+> Library to programmatically build labeled datasets for Named-Entity Recognition (NER) and Relation Extraction (RE) Machine Learning tasks.
 
 <br />
 
