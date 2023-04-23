@@ -7,7 +7,7 @@ colorama==0.4.6
 dill==0.3.6
 docutils==0.19
 exceptiongroup==1.1.1
-extr==0.0.13
+extr==0.0.14
 idna==3.4
 importlib-metadata==6.3.0
 iniconfig==2.0.0
