@@ -27,7 +27,8 @@ class IOB():
                     if not entity.is_in(token):
                         continue
 
-                    assert labels[i] == 'O', f'bad tokenizer? multiple entities belong to the same token - {labels[i]}'
+                    current_label = labels[i]
+                    assert current_label == 'O', f'bad tokenizer? multiple entities belong to the same token - {current_label}'
 
                     labels[i] = 'B-' if used_counter == 0 else 'I-'
                     labels[i] += entity.label
