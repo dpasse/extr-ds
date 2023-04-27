@@ -24,7 +24,7 @@ class IOB():
                 used_counter = 0
 
                 for i, token in tokens:
-                    if not entity.is_in(token):
+                    if not entity.is_in(token) and not entity.contains(token):
                         continue
 
                     current_label = labels[i]

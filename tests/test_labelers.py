@@ -38,6 +38,30 @@ def test_iob_label():
 
     assert list(map(lambda item: item.labels, observations)) == expected
 
+def test_iob_label_2():
+    extractor = EntityExtractor([
+        RegExLabel('PERSON', [
+            RegEx([r'(ted johnson iii)'], re.IGNORECASE)
+        ]),
+    ])
+
+    def sentence_tokenizer(_: str) -> Generator[List[str], None, None]:
+        return (
+            record for record in [
+                ['Ted', 'Johnson', 'iii', 'is', 'a', 'pitcher', '.'],
+            ]
+        )
+
+    text = 'Ted Johnson iii is a pitcher.'
+
+    observations = IOB(sentence_tokenizer, extractor).label(text)
+
+    expected = [
+        ['B-PERSON', 'I-PERSON', 'I-PERSON', 'O', 'O', 'O', 'O'],
+    ]
+
+    assert list(map(lambda item: item.labels, observations)) == expected
+
 def test_relation_label():
     text = 'Ted Johnson is a pitcher. Bob is not a pitcher.'
 
