@@ -4,16 +4,24 @@ import re
 import json
 from dataclasses import dataclass, field
 
-from extr.entities import create_entity_extractor, LabelOnlyEntityAnnotator, HtmlEntityAnnotator, EntityExtractor
+from extr.entities import create_entity_extractor, \
+                          LabelOnlyEntityAnnotator, \
+                          HtmlEntityAnnotator, \
+                          EntityExtractor
 
 from .workspace import load_config, WORKSPACE
-from ..utils.filesystem import load_data, \
-                               save_data
+from ..utils.filesystem import load_data, save_data
 from ..utils import imports
 
 
 entity_annotator = LabelOnlyEntityAnnotator()
 entity_html_annotator = HtmlEntityAnnotator()
+
+@dataclass()
+class Annotations:
+    text: List[str] = field(default_factory=lambda: [])
+    html: List[str] = field(default_factory=lambda: [])
+    text_by_label: Dict[str, List[str]] = field(default={})
 
 def get_extractor() -> EntityExtractor:
     labels = imports.load_file(
@@ -22,12 +30,6 @@ def get_extractor() -> EntityExtractor:
     )
 
     return create_entity_extractor(labels.entity_patterns, labels.kb)
-
-@dataclass()
-class Annotations:
-    text: List[str] = field(default_factory=lambda: [])
-    html: List[str] = field(default_factory=lambda: [])
-    text_by_label: Dict[str, List[str]] = field(default={})
 
 def annotate_file(file_path: str) -> Annotations:
     entity_extractor = get_extractor()
@@ -88,7 +90,18 @@ def create_parsed_by_file(text_by_label: Dict[str, List[str]]) -> None:
         dev_stats.write(json.dumps(text_by_label, indent=2))
 
 def create_html_file(annotations: List[str]) -> None:
-    rows = '\n'.join(
+    styles = """
+p { margin: 5px; line-height: 45px; }
+span.entity { border: 1px solid black; border-radius: 5px; padding: 5px; margin: 3px; color: gray; cursor: pointer; }
+span.label { font-weight: bold; padding: 3px; color: black; }
+"""
+
+    custom_styles_path = os.path.join(WORKSPACE, 'styles.css')
+    if os.path.exists(custom_styles_path):
+        with open(custom_styles_path, 'r', encoding='utf-8') as custom_styles:
+            styles += custom_styles.read()
+
+    rows = '<hr />\n'.join(
         [f'<p>{annotation}</p>' for annotation in annotations]
     )
 
@@ -96,25 +109,9 @@ def create_html_file(annotations: List[str]) -> None:
 <html>
     <head>
         <style>
-            p {
-                margin: 5px;
-                line-height: 45px;
-            }
-
-            span.entity {
-                border: 1px solid black;
-                border-radius: 5px;
-                padding: 5px;
-                margin: 3px;
-                color: gray;
-                cursor: pointer;
-            }
-
-            span.label {
-                font-weight: bold;
-                padding: 3px;
-                color: black;
-            }
+            """ + \
+            styles + \
+            """
         </style>
     </head>
     <body>""" + rows + """</body>
