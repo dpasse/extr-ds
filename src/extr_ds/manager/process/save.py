@@ -1,8 +1,8 @@
 import os
 
-from ..workspace import WORKSPACE
-from ..filesystem import load_data, \
-                         append_data
+from .workspace import WORKSPACE
+from ..utils.filesystem import load_data, \
+                               append_data
 
 
 def save() -> None:

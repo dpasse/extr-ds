@@ -1,9 +1,9 @@
 import os
 import random
 
-from ..workspace import load_config, WORKSPACE
-from ..filesystem import load_data, \
-                         save_data
+from .workspace import load_config, WORKSPACE
+from ..utils.filesystem import load_data, \
+                               save_data
 
 
 def split() -> None:

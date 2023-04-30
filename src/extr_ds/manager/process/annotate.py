@@ -6,10 +6,10 @@ from dataclasses import dataclass, field
 
 from extr.entities import create_entity_extractor, LabelOnlyEntityAnnotator, HtmlEntityAnnotator, EntityExtractor
 
-from .. import imports
-from ..workspace import load_config, WORKSPACE
-from ..filesystem import load_data, \
-                       save_data
+from .workspace import load_config, WORKSPACE
+from ..utils.filesystem import load_data, \
+                               save_data
+from ..utils import imports
 
 
 entity_annotator = LabelOnlyEntityAnnotator()

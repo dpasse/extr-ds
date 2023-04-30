@@ -1,6 +1,6 @@
 import sys
 
-from . import workspace
+from .process import workspace
 from .process import split, annotate, save
 
 
