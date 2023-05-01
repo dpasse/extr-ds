@@ -6,7 +6,7 @@ from ..utils.filesystem import load_data, \
 
 
 def save() -> None:
-    dataset = set(load_data(os.path.join(WORKSPACE, '2', 'dev-ents.txt')))
+    dataset = set(load_data(os.path.join(WORKSPACE, '2', 'dev.txt')))
     append_data(os.path.join(WORKSPACE, '4', 'ents.txt'), dataset)
 
     redacted_dataset = set(load_data(os.path.join(WORKSPACE, '3', 'dev-ents-redacted.txt')))

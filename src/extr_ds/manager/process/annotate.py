@@ -21,7 +21,7 @@ entity_html_annotator = HtmlEntityAnnotator()
 class Annotations:
     text: List[str] = field(default_factory=lambda: [])
     html: List[str] = field(default_factory=lambda: [])
-    text_by_label: Dict[str, List[str]] = field(default={})
+    text_by_label: Dict[str, List[str]] = field( default_factory=lambda: {})
 
 def get_extractor() -> EntityExtractor:
     labels = imports.load_file(
@@ -92,7 +92,7 @@ def create_parsed_by_file(text_by_label: Dict[str, List[str]]) -> None:
 def create_html_file(annotations: List[str]) -> None:
     styles = """
 p { margin: 5px; line-height: 45px; }
-span.entity { border: 1px solid black; border-radius: 5px; padding: 5px; margin: 3px; color: gray; cursor: pointer; }
+span.entity { border: 1px solid black; border-radius: 5px; padding: 5px; margin: 3px; cursor: pointer; }
 span.label { font-weight: bold; padding: 3px; color: black; }
 """
 
