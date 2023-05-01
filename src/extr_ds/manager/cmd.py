@@ -1,7 +1,7 @@
 import sys
 
 from .process import workspace
-from .process import split, annotate, save
+from .process import split, annotate, relate, save
 
 
 def main() -> int:
@@ -23,6 +23,9 @@ def main() -> int:
 
     elif method == '--annotate':
         annotate()
+
+    elif method == '--relate':
+        relate()
 
     elif method == '--save':
         save()

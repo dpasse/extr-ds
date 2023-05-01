@@ -1,0 +1,2 @@
+def relate() -> None:
+    pass
