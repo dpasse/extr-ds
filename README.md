@@ -11,7 +11,7 @@ pip install extr-ds
 
 ## Command Line
 
-see for [Instructions](https://medium.com/@pasdan/building-custom-named-entity-recognition-models-e4d8d95804e) on how to manage your project.
+see [Instructions](https://medium.com/@pasdan/building-custom-named-entity-recognition-models-e4d8d95804e) on how to use the command line utility to manage your project.
 
 ### 1. Init Project
 ```
