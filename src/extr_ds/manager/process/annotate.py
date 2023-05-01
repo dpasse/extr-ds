@@ -36,6 +36,8 @@ def annotate_file(file_path: str) -> Annotations:
     utils = imports.load_file('utils', os.path.join(WORKSPACE, 'utils.py'))
 
     cache = Annotations()
+    text_by_label: Dict[str, Set[str]] = {}
+
     for row in load_data(file_path):
         text = cast(str, utils.transform_text(row))
         entities = entity_extractor.get_entities(text)
@@ -43,15 +45,19 @@ def annotate_file(file_path: str) -> Annotations:
         cache.text.append(
             entity_annotator.annotate(text, entities).annotated_text
         )
+
         cache.html.append(
             entity_html_annotator.annotate(text, entities).annotated_text
         )
 
         for entity in entities:
-            if not entity.label in cache.text_by_label:
-                cache.text_by_label[entity.label] = []
+            if not entity.label in text_by_label:
+                text_by_label[entity.label] = set()
 
-            cache.text_by_label[entity.label].append(entity.text)
+            text_by_label[entity.label].add(entity.text)
+
+    for key, value in text_by_label.items():
+        cache.text_by_label[key] = list(sorted(value))
 
     return cache
 
@@ -82,9 +88,6 @@ def create_redacted_file(annotations: List[str]) -> None:
     )
 
 def create_parsed_by_file(text_by_label: Dict[str, List[str]]) -> None:
-    for key, value in text_by_label.items():
-        text_by_label[key] = list(sorted(set(value)))
-
     stats_path = os.path.join(WORKSPACE, '3', 'dev-ents.stats.json')
     with open(stats_path, 'w', encoding='UTF8') as dev_stats:
         dev_stats.write(json.dumps(text_by_label, indent=2))
