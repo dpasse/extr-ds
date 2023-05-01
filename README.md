@@ -9,6 +9,32 @@
 pip install extr-ds
 ```
 
+## Command Line
+
+see for [Instructions](https://medium.com/@pasdan/building-custom-named-entity-recognition-models-e4d8d95804e) on how to manage your project.
+
+### 1. Init Project
+```
+extr-ds --init
+```
+
+### 2. Split / Annotate
+```
+extr-ds --split
+```
+
+### 3. Annotate Again?
+```
+extr-ds --annotate
+```
+
+### 4. Save Examples
+```
+extr-ds --save
+```
+
+## API
+
 ## Example
 
 ```python
