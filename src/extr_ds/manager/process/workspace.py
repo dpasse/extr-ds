@@ -23,14 +23,22 @@ def create_source_file():
         source_file.write('')
 
 def create_labels_file():
-    src = """from typing import Dict, List
+    src = """from typing import Dict, List, Tuple
 import re
 
 from extr.regexes import RegEx, RegExLabel
+from extr.relations import RegExRelationLabelBuilder
 
 
+## ENTITIES
 kb: Dict[str, List[str]]= {}
 entity_patterns: List[RegExLabel] = []
+
+## RELATIONS
+relation_patterns: List[RegExLabel] = []
+
+## ie. ('PERSON', 'ORG', 'NO_RELATION')
+relation_defaults: List[Tuple[str, str, str]] = []
 """
 
     file_path = os.path.join(WORKSPACE, 'labels.py')
