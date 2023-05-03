@@ -57,7 +57,7 @@ class RelationClassification:
                             relation,
                             offset
                         ).strip(),
-                        relation.label
+                        relation
                     )
                 )
 

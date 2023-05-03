@@ -1,5 +1,5 @@
 from .workspace import init, clean
 from .split import split
-from .annotate import annotate
-from .relate import relate
-from .save import save
+from .entities import annotate
+from .relations import relate
+from .save import save_all, save_entities, save_relations

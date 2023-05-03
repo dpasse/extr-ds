@@ -88,7 +88,8 @@ def init() -> None:
 def clean() -> None:
     files = [
         os.path.join(WORKSPACE, '4', 'ents.txt'),
-        os.path.join(WORKSPACE, '4', 'ents-redacted.txt')
+        os.path.join(WORKSPACE, '4', 'ents-redacted.txt'),
+        os.path.join(WORKSPACE, '4', 'rels.txt'),
     ]
 
     for file in files:

@@ -1,7 +1,10 @@
 import sys
 
-from .process import workspace
-from .process import split, annotate, relate, save
+from .process import workspace, entities, relations
+from .process import split, \
+                     save_all, \
+                     save_entities, \
+                     save_relations
 
 
 def main() -> int:
@@ -18,17 +21,38 @@ def main() -> int:
         workspace.clean()
 
     elif method == '--split':
+        print('split file')
         split()
-        annotate()
+
+        print('annotate entities')
+        entities.annotate()
+
+        print('annotate relations')
+        relations.relate()
 
     elif method == '--annotate':
-        annotate()
+        type_of_save = (args[1] if len(args) > 1 else '').lower()
+
+        if type_of_save == 'ents':
+            entities.annotate()
+        elif type_of_save == 'rels':
+            relations.relate()
+        else:
+            entities.annotate()
+            relations.relate()
 
     elif method == '--relate':
-        relate()
+        relations.relate()
 
     elif method == '--save':
-        save()
+        type_of_save = (args[1] if len(args) > 1 else '').lower()
+
+        if type_of_save == 'ents':
+            save_entities()
+        elif type_of_save == 'rels':
+            save_relations()
+        else:
+            save_all()
 
     elif method == '--reset':
         workspace.clean()

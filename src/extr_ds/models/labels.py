@@ -1,6 +1,6 @@
 from typing import List, Dict
 from dataclasses import dataclass
-from extr.models import Token
+from extr.models import Token, Relation
 
 
 @dataclass
@@ -14,7 +14,15 @@ class Label:
 @dataclass
 class RelationLabel:
     sentence: str
-    label: str
+    relation: Relation
+
+    @property
+    def label(self) -> str:
+        return self.relation.label
+
+    @property
+    def definition(self) -> str:
+        return self.relation.definition
 
     def todict(self) -> Dict[str, str]:
         return {
