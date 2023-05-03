@@ -42,7 +42,17 @@ def main() -> int:
             relations.relate()
 
     elif method == '--relate':
-        relations.relate()
+        if len(args) >= 3:
+            action = args[1]
+            row = args[2]
+
+            if action == 'label':
+                index, label = row.split('=')
+                relations.change_label(label, int(index))
+
+            elif action == 'delete':
+                relations.delete_row(int(row))
+
 
     elif method == '--save':
         type_of_save = (args[1] if len(args) > 1 else '').lower()

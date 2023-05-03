@@ -48,10 +48,6 @@ def relate() -> None:
     rows = []
     blobs = []
 
-    ## make html work off of dev-rels.json file somehow...
-    ## instead of removing data just add a class to the row?
-    ## to flip a label, just update the row?
-
     index = 0
     html_annotator = HtmlRelationAnnotator()
     for key, items in relation_groups.items():
@@ -73,6 +69,8 @@ span.entity { border: 1px solid black; border-radius: 5px; padding: 5px; margin:
 span.label { font-weight: bold; padding: 3px; color: black; }
 span.e1 { background-color: aqua; }
 span.e2 { background-color: coral; }
+tr.delete { background-color: black !important; }
+tr.delete span { background-color: black !important; }
 td { line-height: 30px; border: 1px solid black; padding: 5px; }
 td.header { font-weight: bold; }
 td.label { font-weight: bold; text-align: center; }
@@ -93,3 +91,56 @@ td.label { font-weight: bold; text-align: center; }
 
     with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
         relation_outputs.write(json.dumps(blobs, indent=2))
+
+def change_label(label: str, row: int) -> None:
+    html_path = os.path.join(WORKSPACE, '3', 'dev-rels.html')
+    with open(html_path, 'r', encoding='utf-8') as html_file:
+        html = html_file.read()
+
+    html = re.sub(
+        r'(<tr id="' + str(row) + '"><td>' + str(row) + '</td><td class="label">)(.+?)(</td>)',
+        r'\1' + label + r'\3',
+        html
+    )
+
+    with open(html_path, 'w', encoding='utf-8') as html_file:
+        html_file.write(html)
+
+    dev_path = os.path.join(WORKSPACE, '3', 'dev-rels.json')
+    with open(dev_path, 'r', encoding='utf-8') as relation_outputs:
+        dev = json.loads(relation_outputs.read())
+
+    dev[row] = {
+        'sentence': dev[row]['sentence'],
+        'label': label
+    }
+
+    with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
+        relation_outputs.write(json.dumps(dev, indent=2))
+
+def delete_row(row: int) -> None:
+    html_path = os.path.join(WORKSPACE, '3', 'dev-rels.html')
+    with open(html_path, 'r', encoding='utf-8') as html_file:
+        html = html_file.read()
+
+    html = re.sub(
+        r'(<tr )(id="' + str(row) + '")',
+        r'\1class="delete" \2',
+        html
+    )
+
+    with open(html_path, 'w', encoding='utf-8') as html_file:
+        html_file.write(html)
+
+    dev_path = os.path.join(WORKSPACE, '3', 'dev-rels.json')
+    with open(dev_path, 'r', encoding='utf-8') as relation_outputs:
+        dev = json.loads(relation_outputs.read())
+
+    dev[row] = {
+        'sentence': dev[row]['sentence'],
+        'label': dev[row]['label'],
+        'attribute': 'delete',
+    }
+
+    with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
+        relation_outputs.write(json.dumps(dev, indent=2))

@@ -16,7 +16,7 @@ def save_entities() -> None:
 
 def save_relations() -> None:
     with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'r', encoding='utf-8') as relation_outputs:
-        data = json.loads(relation_outputs.read())
+        data = [row for row in json.loads(relation_outputs.read()) if not 'attribute' in row]
 
     output_path = os.path.join(WORKSPACE, '4', 'rels.json')
     if os.path.exists(output_path):
