@@ -1,73 +1,95 @@
 import sys
+from typing import List, Optional, Tuple, cast
+from dataclasses import dataclass
 
 from .process import workspace, entities, relations
 from .process import split, \
-                     save_all, \
                      save_entities, \
                      save_relations
 
+
+@dataclass
+class Command:
+    branch: str
+    sub_command: Optional[str]
+    args: Optional[str]
+
+    @property
+    def has_sub_command(self) -> bool:
+        return not self.sub_command is None
+
+    @property
+    def has_args(self) -> bool:
+        return not self.args is None
+
+    def get_args(self, delim='=') -> Optional[Tuple[str, List[str]]]:
+        if self.has_args:
+            a1, a2 = cast(str, self.args).split(delim)
+            return (a1, a2.split(','))
+
+        return None
+
+def create_command(args: List[str]) -> Command:
+    return Command(
+        branch=args[0],
+        sub_command=args[1] if len(args) > 1 else None,
+        args=args[2] if len(args) > 2 else None
+    )
 
 def main() -> int:
     if len(sys.argv) == 1:
         return -1
 
-    args = sys.argv[1:]
-    method = args[0]
+    command = create_command(sys.argv[1:])
 
-    if method == '--init':
+    if command.branch == '--init':
         workspace.init()
 
-    elif method == '--reset':
+    if command.branch == '--reset':
         workspace.clean()
 
-    elif method == '--split':
-        print('split file')
+    if command.branch == '--split':
         split()
-
-        print('annotate entities')
         entities.annotate()
-
-        print('annotate relations')
         relations.relate()
 
-    elif method == '--annotate':
-        type_of_save = (args[1] if len(args) > 1 else '').lower()
+    if command.branch == '--annotate':
+        if not command.has_sub_command:
+            return -1
 
-        if type_of_save == 'ents':
+        if command.sub_command == '-ents':
+            ## --annotate -ents
             entities.annotate()
-        elif type_of_save == 'rels':
+
+        if command.sub_command == '-rels':
+            ## --annotate -rels
             relations.relate()
-        else:
-            entities.annotate()
-            relations.relate()
 
-    elif method == '--relate':
-        if len(args) >= 3:
-            action = args[1]
-            row = args[2]
+    if command.branch == '--relate':
+        if not command.has_sub_command:
+            return -1
 
-            if action == 'label':
-                index, label = row.split('=')
-                relations.change_label(label, int(index))
+        if command.sub_command == '-label':
+            ## --relate -label NO_RELATION=1,3,6
+            label, args = cast(Tuple[str, List[str]], command.get_args())
+            for index in map(int, args):
+                relations.change_label(label, index)
 
-            elif action == 'delete':
-                relations.delete_row(int(row))
+        if command.sub_command == '-delete':
+            ## --relate -delete 1,3,6
+            for index in map(int, cast(str, command.args).split(',')):
+                relations.delete_row(index)
 
+    if command.branch == '--save':
+        if not command.has_sub_command:
+            return -1
 
-    elif method == '--save':
-        type_of_save = (args[1] if len(args) > 1 else '').lower()
-
-        if type_of_save == 'ents':
+        if command.sub_command == '-ents':
+            ## --save -ents
             save_entities()
-        elif type_of_save == 'rels':
+
+        if command.sub_command == '-rels':
+            ## --save -rels
             save_relations()
-        else:
-            save_all()
-
-    elif method == '--reset':
-        workspace.clean()
-
-    else:
-        print(f'"{method}" is not a valid command.')
 
     return 0

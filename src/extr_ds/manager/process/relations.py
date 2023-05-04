@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Callable, Dict, List
 import re
 import os
 import json
@@ -12,12 +12,8 @@ from .workspace import WORKSPACE
 from ..utils.filesystem import load_data
 from ..utils import imports
 
-utils = imports.load_file(
-    'utils',
-    os.path.join(WORKSPACE, 'utils.py')
-)
 
-def get_labeler() -> RelationClassification:
+def get_labeler(sentence_tokenizer: Callable[[str], List[List[str]]]) -> RelationClassification:
     labels = imports.load_file(
         'labels',
         os.path.join(WORKSPACE, 'labels.py')
@@ -27,14 +23,19 @@ def get_labeler() -> RelationClassification:
     relation_extractor = RelationExtractor(labels.relation_patterns)
 
     return RelationClassification(
-        utils.sentence_tokenizer,
+        sentence_tokenizer,
         entity_extractor,
         relation_extractor,
         labels.relation_defaults,
     )
 
 def relate() -> None:
-    labeler = get_labeler()
+    utils = imports.load_file(
+        'utils',
+        os.path.join(WORKSPACE, 'utils.py')
+    )
+
+    labeler = get_labeler(utils.sentence_tokenizer)
 
     relation_groups: Dict[str, List[RelationLabel]] = {}
     for row in load_data(os.path.join(WORKSPACE, '2', 'dev.txt')):

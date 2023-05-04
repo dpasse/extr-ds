@@ -49,8 +49,3 @@ def save_relations() -> None:
 
     with open(output_path, 'w', encoding='utf-8') as relation_outputs:
         relation_outputs.write(json.dumps(slim_data, indent=2))
-
-
-def save_all() -> None:
-    save_entities()
-    save_relations()

@@ -19,11 +19,19 @@ class RelationClassification:
         self._relation_extractor = relation_extractor
         self._no_relations = no_relations
 
+        self._entities_we_care_about = set()
+        for e1, e2, _ in self._no_relations:
+            self._entities_we_care_about.add(e1)
+            self._entities_we_care_about.add(e2)
+
         self._entity_annotator = EntityAnnotator()
         self._relation_annotator = RelationAnnotator()
 
     def label(self, text: str) -> List[RelationLabel]:
-        found_entities = self._entity_extractor.get_entities(text)
+        found_entities = Query(self._entity_extractor.get_entities(text)) \
+            .filter(lambda entity: entity.label in self._entities_we_care_about) \
+            .tolist()
+
         found_relations = self._relation_extractor.extract(
             self._entity_annotator.annotate(text, found_entities)
         )
