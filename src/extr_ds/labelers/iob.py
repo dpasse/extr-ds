@@ -37,4 +37,4 @@ class IOB():
 
                     used_counter += 1
 
-            yield Label(token_group.tokens, labels)
+            yield Label(token_group, labels)

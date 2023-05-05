@@ -1,12 +1,21 @@
-from typing import List, Dict
+from typing import Dict, List, Tuple
 from dataclasses import dataclass
-from extr.models import Token, Relation
+from extr.models import Token, TokenGroup, Relation
 
 
-@dataclass
 class Label:
-    tokens: List[Token]
-    labels: List[str]
+    def __init__(self, token_group: TokenGroup, labels: List[str]) -> None:
+        assert len(token_group.tokens) == len(labels)
+
+        self.token_group = token_group
+        self.labels = labels
+
+    @property
+    def tokens(self) -> List[Token]:
+        return self.token_group.tokens
+
+    def zip(self) -> List[Tuple[Token, str]]:
+        return list(zip(self.tokens, self.labels))
 
     def __repr__(self) -> str:
         return f'<Label tokens={self.tokens}, labels={self.labels}>'
