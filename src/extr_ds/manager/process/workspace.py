@@ -8,7 +8,8 @@ WORKSPACE = os.getcwd()
 DEFAULT_CONFIG: Dict[str, Any] = {
     'source': 'source.txt',
     'split': {
-        'amount': 25
+        'amount': 25,
+        'seed': None
     },
     'annotations': {
         'enable-html': True,
