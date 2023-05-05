@@ -18,19 +18,31 @@ see [Instructions](https://medium.com/@pasdan/building-custom-named-entity-recog
 extr-ds --init
 ```
 
-### 2. Split / Annotate
+### 2. Split and Annotate
 ```
 extr-ds --split
 ```
 
-### 3. Annotate Again?
+### 3.a Annotate Entities or Relations Again?
 ```
-extr-ds --annotate
+extr-ds --annotate -ents
+extr-ds --annotate -rels
 ```
 
-### 4. Save Examples
+### 3.b Change Relation Extraction Label
 ```
-extr-ds --save
+extr-ds --relate -label NO_RELATION=5,7,9
+```
+
+### 3.b Remove Relation Extraction Instance
+```
+extr-ds --relate -delete 5,6,7
+```
+
+### 4. Save
+```
+extr-ds --save -ents
+extr-ds --save -rels
 ```
 
 ## API
