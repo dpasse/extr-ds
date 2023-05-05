@@ -106,16 +106,17 @@ def relate() -> None:
             )
         )
 
-def change_label(label: str, row: int) -> None:
+def change_label(label: str, rows: List[int]) -> None:
     html_path = os.path.join(WORKSPACE, '3', 'dev-rels.html')
     with open(html_path, 'r', encoding='utf-8') as html_file:
         html = html_file.read()
 
-    html = re.sub(
-        r'(<tr id="' + str(row) + '"><td>' + str(row) + '</td><td class="label">)(.+?)(</td>)',
-        r'\1' + label + r'\3',
-        html
-    )
+    for row in rows:
+        html = re.sub(
+            r'(<tr id="' + str(row) + '"><td>' + str(row) + '</td><td class="label">)(.+?)(</td>)',
+            r'\1' + label + r'\3',
+            html
+        )
 
     with open(html_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html)
@@ -124,24 +125,26 @@ def change_label(label: str, row: int) -> None:
     with open(dev_path, 'r', encoding='utf-8') as relation_outputs:
         dev = json.loads(relation_outputs.read())
 
-    dev[row] = {
-        'sentence': dev[row]['sentence'],
-        'label': label
-    }
+    for row in rows:
+        dev[row] = {
+            'sentence': dev[row]['sentence'],
+            'label': label
+        }
 
     with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
         relation_outputs.write(json.dumps(dev, indent=2))
 
-def delete_row(row: int) -> None:
+def delete_row(rows: List[int]) -> None:
     html_path = os.path.join(WORKSPACE, '3', 'dev-rels.html')
     with open(html_path, 'r', encoding='utf-8') as html_file:
         html = html_file.read()
 
-    html = re.sub(
-        r'(<tr )(id="' + str(row) + '")',
-        r'\1class="delete" \2',
-        html
-    )
+    for row in rows:
+        html = re.sub(
+            r'(<tr )(id="' + str(row) + '")',
+            r'\1class="delete" \2',
+            html
+        )
 
     with open(html_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html)
@@ -150,11 +153,40 @@ def delete_row(row: int) -> None:
     with open(dev_path, 'r', encoding='utf-8') as relation_outputs:
         dev = json.loads(relation_outputs.read())
 
-    dev[row] = {
-        'sentence': dev[row]['sentence'],
-        'label': dev[row]['label'],
-        'attribute': 'delete',
-    }
+    for row in rows:
+        dev[row] = {
+            'sentence': dev[row]['sentence'],
+            'label': dev[row]['label'],
+            'attribute': 'delete',
+        }
+
+    with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
+        relation_outputs.write(json.dumps(dev, indent=2))
+
+def recover_row(rows: List[int]) -> None:
+    html_path = os.path.join(WORKSPACE, '3', 'dev-rels.html')
+    with open(html_path, 'r', encoding='utf-8') as html_file:
+        html = html_file.read()
+
+    for row in rows:
+        html = re.sub(
+            r'(<tr) class="delete" (id="' + str(row) + '")',
+            r'\1 \2',
+            html
+        )
+
+    with open(html_path, 'w', encoding='utf-8') as html_file:
+        html_file.write(html)
+
+    dev_path = os.path.join(WORKSPACE, '3', 'dev-rels.json')
+    with open(dev_path, 'r', encoding='utf-8') as relation_outputs:
+        dev = json.loads(relation_outputs.read())
+
+    for row in rows:
+        dev[row] = {
+            'sentence': dev[row]['sentence'],
+            'label': dev[row]['label'],
+        }
 
     with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
         relation_outputs.write(json.dumps(dev, indent=2))

@@ -74,13 +74,22 @@ def main() -> int:
         if command.sub_command == '-label':
             ## --relate -label NO_RELATION=1,3,6
             label, args = cast(Tuple[str, List[str]], command.get_args())
-            for index in map(int, args):
-                relations.change_label(label, index)
+            relations.change_label(
+                label,
+                list(map(int, args))
+            )
 
         if command.sub_command == '-delete':
             ## --relate -delete 1,3,6
-            for index in map(int, cast(str, command.args).split(',')):
-                relations.delete_row(index)
+            relations.delete_row(
+                list(map(int, cast(str, command.args).split(',')))
+            )
+
+        if command.sub_command == '-recover':
+            ## --relate -delete 1,3,6
+            relations.recover_row(
+                list(map(int, cast(str, command.args).split(',')))
+            )
 
     if command.branch == '--save':
         if not command.has_sub_command:
