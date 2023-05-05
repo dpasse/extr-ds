@@ -29,6 +29,8 @@ class Command:
 
         return None
 
+# pylint: disable=R0912
+
 def create_command(args: List[str]) -> Command:
     return Command(
         branch=args[0],
@@ -93,3 +95,5 @@ def main() -> int:
             save_relations()
 
     return 0
+
+# pylint: enable=R0912

@@ -70,15 +70,13 @@ def create_redacted_file(annotations: List[str]) -> None:
 
         return redacted_templates
 
-    config = load_config()
-    annotations_config = config['annotations'] if 'annotations' in config else {}
-
     redactions: List[str] = [
         re.sub(' +', ' ', re.sub(r'<[A-Z]+>.+?</[A-Z]+>', ' ', row))
         for row in annotations
     ]
 
-    if annotations_config['filter-redactions'] if 'filter-redactions' in annotations_config else True:
+    config = load_config()
+    if bool(config['annotations']['filter-redactions']):
         redacted_templates = get_redacted_templates()
         redactions = [row for row in redactions if not row in redacted_templates]
 
@@ -136,6 +134,5 @@ def annotate() -> None:
     create_parsed_by_file(cache.text_by_label)
 
     config = load_config()
-    annotations_config = config['annotations'] if 'annotations' in config else {}
-    if annotations_config['enable-html'] if 'enable-html' in annotations_config else True:
+    if bool(config['annotations']['enable-html']):
         create_html_file(cache.html)

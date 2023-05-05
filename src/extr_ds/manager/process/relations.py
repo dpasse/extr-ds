@@ -29,30 +29,14 @@ def get_labeler(sentence_tokenizer: Callable[[str], List[List[str]]]) -> Relatio
         labels.relation_defaults,
     )
 
-def relate() -> None:
-    utils = imports.load_file(
-        'utils',
-        os.path.join(WORKSPACE, 'utils.py')
-    )
-
-    labeler = get_labeler(utils.sentence_tokenizer)
-
-    relation_groups: Dict[str, List[RelationLabel]] = {}
-    for row in load_data(os.path.join(WORKSPACE, '2', 'dev.txt')):
-        text = utils.transform_text(row)
-        for relation_label in labeler.label(text):
-            if not relation_label.definition in relation_groups:
-                relation_groups[relation_label.definition] = []
-
-            relation_groups[relation_label.definition].append(relation_label)
-
-    rows = []
-    blobs = []
+def create_html_file(relation_groups: Dict[str, List[RelationLabel]]) -> List[RelationLabel]:
+    html_rows: List[str] = []
+    ordered_relations: List[RelationLabel] = []
 
     index = 0
     html_annotator = HtmlRelationAnnotator()
     for key, items in relation_groups.items():
-        rows.append(f'<tr><td class="header" colspan=3>{key}</td></tr>')
+        html_rows.append(f'<tr><td class="header" colspan=3>{key}</td></tr>')
         for relation_label in items:
             text = html_annotator.annotate(
                 re.sub(r'</?e\d+>', '', relation_label.sentence),
@@ -60,8 +44,11 @@ def relate() -> None:
             )
 
             row_id = str(index)
-            rows.append(f'<tr id="{row_id}"><td>{row_id}</td><td class="label">{relation_label.relation.label}</td><td>{text}</td></tr>')
-            blobs.append(relation_label.todict())
+            html_rows.append(
+                f'<tr id="{row_id}"><td>{row_id}</td><td class="label">{relation_label.relation.label}</td><td>{text}</td></tr>'
+            )
+
+            ordered_relations.append(relation_label)
 
             index += 1
 
@@ -82,7 +69,7 @@ td.label { font-weight: bold; text-align: center; }
     <head>
         <style>""" + styles + """</style>
     </head>
-    <body><table>""" + '\n'.join(rows) + """</table></body>
+    <body><table>""" + '\n'.join(html_rows) + """</table></body>
 </html>
 """
 
@@ -90,8 +77,34 @@ td.label { font-weight: bold; text-align: center; }
     with open(html_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html)
 
+    return ordered_relations
+
+def relate() -> None:
+    utils = imports.load_file(
+        'utils',
+        os.path.join(WORKSPACE, 'utils.py')
+    )
+
+    labeler = get_labeler(utils.sentence_tokenizer)
+
+    relation_groups: Dict[str, List[RelationLabel]] = {}
+    for row in load_data(os.path.join(WORKSPACE, '2', 'dev.txt')):
+        text = utils.transform_text(row)
+        for relation_label in labeler.label(text):
+            if not relation_label.definition in relation_groups:
+                relation_groups[relation_label.definition] = []
+
+            relation_groups[relation_label.definition].append(relation_label)
+
+    ordered_relations = create_html_file(relation_groups)
+
     with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'w', encoding='utf-8') as relation_outputs:
-        relation_outputs.write(json.dumps(blobs, indent=2))
+        relation_outputs.write(
+            json.dumps(
+                list(map(lambda relation: relation.todict(), ordered_relations)),
+                indent=2
+            )
+        )
 
 def change_label(label: str, row: int) -> None:
     html_path = os.path.join(WORKSPACE, '3', 'dev-rels.html')

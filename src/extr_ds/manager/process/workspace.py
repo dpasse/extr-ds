@@ -5,10 +5,32 @@ import json
 
 
 WORKSPACE = os.getcwd()
+DEFAULT_CONFIG: Dict[str, Any] = {
+    'source': 'source.txt',
+    'split': {
+        'amount': 25
+    },
+    'annotations': {
+        'enable-html': True,
+        'filter-redactions': True,
+    }
+}
+
+def merge_dict(mapping: Dict[str, Any], updating_mapping: Dict[str, Any]) -> Dict[str, Any]:
+    updated_mapping = mapping.copy()
+
+    for key, value in updating_mapping.items():
+        if key in updated_mapping and isinstance(updated_mapping[key], dict) and isinstance(value, dict):
+            updated_mapping[key] = merge_dict(updated_mapping[key], value)
+        else:
+            updated_mapping[key] = value
+
+    return updated_mapping
 
 def load_config() -> Dict[str, Any]:
     with open(os.path.join(WORKSPACE, 'extr-config.json'), 'r', encoding='utf-8') as config_file:
-        return json.loads(config_file.read())
+        config = json.loads(config_file.read())
+        return merge_dict(DEFAULT_CONFIG, config)
 
 def save_config(config: Dict[str, Any]) -> None:
     with open(os.path.join(WORKSPACE, 'extr-config.json'), 'w', encoding='utf-8') as config_file:
@@ -63,20 +85,9 @@ def transform_text(text: str) -> str:
         utils_file.write(src)
 
 def init() -> None:
-    save_config({
-        'source': 'source.txt',
-        'split': {
-            'amount': 25
-        },
-        'annotations': {
-            'enable-html': True,
-            'filter-redactions': True,
-        }
-    })
+    save_config(DEFAULT_CONFIG)
 
-    directories = ['1', '2', '3', '4']
-
-    for folder in directories:
+    for folder in ['1', '2', '3', '4']:
         directory = os.path.join(WORKSPACE, folder)
         if not os.path.exists(directory):
             os.mkdir(directory)
