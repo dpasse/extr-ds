@@ -86,7 +86,7 @@ def main() -> int:
             )
 
         if command.sub_command == '-recover':
-            ## --relate -delete 1,3,6
+            ## --relate -recover 1,3,6
             relations.recover_row(
                 list(map(int, cast(str, command.args).split(',')))
             )
