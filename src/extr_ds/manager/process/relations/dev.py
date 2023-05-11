@@ -86,7 +86,8 @@ def change_label(label: str, rows: List[int]) -> None:
     for row in rows:
         dev[row] = {
             'sentence': dev[row]['sentence'],
-            'label': label
+            'label': label,
+            'definition': dev[row]['definition'],
         }
 
     save_document(DEV_PATH, json.dumps(dev, indent=2))
@@ -107,6 +108,7 @@ def delete_row(rows: List[int]) -> None:
         dev[row] = {
             'sentence': dev[row]['sentence'],
             'label': dev[row]['label'],
+            'definition': dev[row]['definition'],
             'attribute': 'delete',
         }
 
@@ -128,6 +130,7 @@ def recover_row(rows: List[int]) -> None:
         dev[row] = {
             'sentence': dev[row]['sentence'],
             'label': dev[row]['label'],
+            'definition': dev[row]['definition'],
         }
 
     save_document(DEV_PATH, json.dumps(dev, indent=2))

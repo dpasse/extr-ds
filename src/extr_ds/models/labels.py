@@ -42,6 +42,7 @@ class RelationLabel:
         return {
             'sentence': self.sentence,
             'label': self.label,
+            'definition': self.relation.definition
         }
 
     def __repr__(self) -> str:
