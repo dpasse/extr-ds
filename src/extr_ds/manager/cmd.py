@@ -2,7 +2,7 @@ import sys
 from typing import List, Optional, Tuple, cast
 from dataclasses import dataclass
 
-from .process import workspace, entities, relations
+from .process import workspace, relations, entities
 from .process import split, \
                      save_entities, \
                      save_relations

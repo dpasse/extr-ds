@@ -1,4 +1,5 @@
 from typing import Dict, List, Tuple
+import re
 from dataclasses import dataclass
 from extr.models import Token, TokenGroup, Relation
 
@@ -32,6 +33,10 @@ class RelationLabel:
     @property
     def definition(self) -> str:
         return self.relation.definition
+
+    @property
+    def original_sentence(self) -> str:
+        return re.sub(r'</?e\d+>', '', self.sentence)
 
     def todict(self) -> Dict[str, str]:
         return {
