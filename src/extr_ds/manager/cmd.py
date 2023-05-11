@@ -2,7 +2,7 @@ import sys
 from typing import List, Optional, Tuple, cast
 from dataclasses import dataclass
 
-from .process import workspace, relations, entities
+from .process import how_to, workspace, relations, entities
 from .process import split, \
                      save_entities, \
                      save_relations
@@ -102,6 +102,9 @@ def main() -> int:
         if command.sub_command == '-rels':
             ## --save -rels
             save_relations()
+
+    if command.branch == '--help':
+        how_to.print_help()
 
     return 0
 
