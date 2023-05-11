@@ -39,10 +39,25 @@ extr-ds --relate -label NO_RELATION=5,7,9
 extr-ds --relate -delete 5,6,7
 ```
 
+### 3.c Recover removed Relation Extraction Instances
+```
+extr-ds --relate -recover 5,6,7
+```
+
 ### 4. Save
 ```
 extr-ds --save -ents
 extr-ds --save -rels
+```
+
+### 5. Reset "Gold Standard" datasets
+```
+extr-ds --reset
+```
+
+### 6. Help!?
+```
+extr-ds --help
 ```
 
 ## API
