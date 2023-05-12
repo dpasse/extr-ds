@@ -34,7 +34,7 @@ def save_data(file_path: str, data: List[str]) -> None:
 
     save_document(file_path, '\n'.join(sorted_data))
 
-def append_data(file_path: str, dataset: Union[Set[str], List[str]]) -> None:
+def append_data(file_path: str, dataset: Union[Set[str], List[str]]) -> int:
     if os.path.exists(file_path):
         for record in load_data(file_path):
             if isinstance(record, set):
@@ -45,3 +45,5 @@ def append_data(file_path: str, dataset: Union[Set[str], List[str]]) -> None:
     dataset = list(sorted(dataset, key=len, reverse=True))
 
     save_document(file_path, '\n'.join(dataset).strip())
+
+    return len(dataset)

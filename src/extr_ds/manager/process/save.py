@@ -9,7 +9,9 @@ from ..utils.filesystem import load_data, \
 
 def save_entities() -> None:
     dataset = set(load_data(os.path.join(WORKSPACE, '2', 'dev.txt')))
-    append_data(os.path.join(WORKSPACE, '4', 'ents.txt'), dataset)
+    rows = append_data(os.path.join(WORKSPACE, '4', 'ents.txt'), dataset)
+
+    print('#rows:', rows)
 
     redacted_dataset = set(load_data(os.path.join(WORKSPACE, '3', 'dev-ents-redacted.txt')))
     append_data(os.path.join(WORKSPACE, '4', 'ents-redacted.txt'), redacted_dataset)
@@ -49,3 +51,5 @@ def save_relations() -> None:
 
     with open(output_path, 'w', encoding='utf-8') as relation_outputs:
         relation_outputs.write(json.dumps(slim_data, indent=2))
+
+    print('#rows:', len(slim_data))

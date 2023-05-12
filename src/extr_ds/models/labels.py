@@ -36,7 +36,9 @@ class RelationLabel:
 
     @property
     def original_sentence(self) -> str:
-        return re.sub(r'</?e\d+>', '', self.sentence)
+        text = re.sub(r'</?e\d+>', '', self.sentence)
+        text = re.sub(r'</?e\d+:\w+>', '', text)
+        return text
 
     def todict(self) -> Dict[str, str]:
         return {
