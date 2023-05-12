@@ -3,6 +3,7 @@ import os
 
 from extr.entities import create_entity_extractor
 from extr.relations import RelationExtractor
+from extr.relations.annotator import RelationAnnotatorWithEntityType
 from extr_ds.models import RelationLabel
 from extr_ds.labelers import RelationClassification
 
@@ -26,6 +27,7 @@ def get_labeler(sentence_tokenizer: Callable[[str], List[List[str]]]) -> Relatio
         entity_extractor,
         relation_extractor,
         labels.relation_defaults,
+        relation_annotator=RelationAnnotatorWithEntityType()
     )
 
 def relate() -> None:

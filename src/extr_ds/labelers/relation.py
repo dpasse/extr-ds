@@ -13,7 +13,8 @@ class RelationClassification:
                  sentence_tokenizer: Callable[[str], List[List[str]]],
                  entity_extractor: EntityExtractor,
                  relation_extractor: RelationExtractor,
-                 no_relations: List[Tuple[str, str, str]]):
+                 no_relations: List[Tuple[str, str, str]],
+                 relation_annotator = RelationAnnotator()):
         self._sentence_tokenizer = sentence_tokenizer
         self._entity_extractor = entity_extractor
         self._relation_extractor = relation_extractor
@@ -25,7 +26,7 @@ class RelationClassification:
             self._entities_we_care_about.add(e2)
 
         self._entity_annotator = EntityAnnotator()
-        self._relation_annotator = RelationAnnotator()
+        self._relation_annotator = relation_annotator
 
     def label(self, text: str) -> List[RelationLabel]:
         found_entities = Query(self._entity_extractor.get_entities(text)) \
