@@ -1,10 +1,13 @@
-from typing import Any, Dict
+from typing import Any, Dict, cast, Callable, List
 
 import re
 import os
 import json
 
-from .workspace import WORKSPACE
+from extr import Entity, Location
+from .workspace import WORKSPACE, load_config
+from ...labelers.iob import Labeler
+from ..utils import imports
 from ..utils.filesystem import load_data, \
                                append_data, \
                                save_data, \
@@ -12,13 +15,12 @@ from ..utils.filesystem import load_data, \
 
 
 def entity_text_annotation_to_json(text_annotation: str) -> Dict[str, Any]:
-    blob = {
+    blob: Dict[str, Any] = {
         'text': text_annotation,
         'entities': []
     }
 
     while True:
-
         match = re.search(r'(<(\w+?)>.+?</\w+>)', blob['text'])
         if match is None:
             break
@@ -26,7 +28,6 @@ def entity_text_annotation_to_json(text_annotation: str) -> Dict[str, Any]:
         start, match_end = match.span()
         entity_text = re.sub(r'</?\w+>', '', match.group(1))
         label = match.group(2)
-
 
         blob['entities'].append(
             {
@@ -41,6 +42,38 @@ def entity_text_annotation_to_json(text_annotation: str) -> Dict[str, Any]:
 
     return blob
 
+def blob_to_entity(blob: Dict[str, Any]) -> Entity:
+    return Entity(
+        label=blob['label'],
+        text=blob['text'],
+        location=Location(start=blob['start'], end=blob['end'])
+    )
+
+def output_iob_for_entities(blobs: List[Dict[str, Any]]) -> None:
+    iob_dataset: List[Dict[str, List[str]]] = []
+
+    utils = imports.load_file('utils', os.path.join(WORKSPACE, 'utils.py'))
+    iob_labeler = Labeler(
+        cast(Callable[[str], List[List[str]]], utils.sentence_tokenizer)
+    )
+
+    for i, blob in enumerate(blobs):
+        try:
+            entities = list(map(blob_to_entity, blob['entities']))
+            for label in iob_labeler.label(blob['text'], entities):
+                iob_dataset.append(
+                    {
+                        'tokens': [tk.text for tk in label.tokens],
+                        'labels': label.labels
+                    }
+                )
+        except:
+            print('* record', i, 'in `ents.json` could not be converted to iob. please check your `utils.sentence_tokenizer` method to ensure singular tokens.')
+
+    save_document(
+        os.path.join(WORKSPACE, '4', 'ents-iob.json'),
+        json.dumps(iob_dataset)
+    )
 
 def save_entities() -> None:
     blobs = [
@@ -59,6 +92,7 @@ def save_entities() -> None:
         blobs.extend(current_data)
 
     keys = set()
+
     dataset = []
     for blob in blobs:
         key = blob['text']
@@ -79,6 +113,10 @@ def save_entities() -> None:
         blob_storage,
         json.dumps(dataset, indent=2)
     )
+
+    config = load_config()['annotations']
+    if config['output-iob']:
+        output_iob_for_entities(dataset)
 
     redacted_dataset = set(load_data(os.path.join(WORKSPACE, '3', 'dev-ents-redacted.txt')))
     append_data(os.path.join(WORKSPACE, '4', 'ents-redacted.txt'), redacted_dataset)

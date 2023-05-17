@@ -14,6 +14,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     'annotations': {
         'enable-html': True,
         'filter-redactions': True,
+        'output-iob': True,
     }
 }
 
@@ -100,6 +101,8 @@ def init() -> None:
 def clean() -> None:
     files = [
         os.path.join(WORKSPACE, '4', 'ents.txt'),
+        os.path.join(WORKSPACE, '4', 'ents.json'),
+        os.path.join(WORKSPACE, '4', 'ents-iob.json'),
         os.path.join(WORKSPACE, '4', 'ents-redacted.txt'),
         os.path.join(WORKSPACE, '4', 'rels.txt'),
     ]
