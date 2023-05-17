@@ -1,4 +1,4 @@
-from typing import Any, Dict, cast, Callable, List
+from typing import Any, Dict, cast, Callable, List, Set
 
 import re
 import os
@@ -10,7 +10,8 @@ from ...labelers.iob import Labeler
 from ..utils import imports
 from ..utils.filesystem import load_data, \
                                append_data, \
-                               save_document
+                               save_document, \
+                               load_document
 
 
 def entity_text_annotation_to_json(text_annotation: str) -> Dict[str, Any]:
@@ -49,6 +50,12 @@ def blob_to_entity(blob: Dict[str, Any]) -> Entity:
     )
 
 def output_iob_for_entities(blobs: List[Dict[str, Any]]) -> None:
+    def format_blob_storage(blobs: str) -> str:
+        text = re.sub(r'(?<=\[)\n +', '', blobs)
+        text = re.sub(r'\n +(?=\])', '', text)
+        text = re.sub(r'(?<=",)\n +', '', text)
+        return text
+
     iob_dataset: List[Dict[str, List[str]]] = []
 
     utils = imports.load_file('utils', os.path.join(WORKSPACE, 'utils.py'))
@@ -72,8 +79,22 @@ def output_iob_for_entities(blobs: List[Dict[str, Any]]) -> None:
 
     save_document(
         os.path.join(WORKSPACE, '4', 'ents-iob.json'),
-        json.dumps(iob_dataset)
+        format_blob_storage(json.dumps(iob_dataset, indent=2))
     )
+
+def uniq(blobs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    keys: Set[str] = set()
+
+    dataset: List[Dict[str, Any]] = []
+    for blob in blobs:
+        key = cast(str, blob['text'])
+        if key in keys:
+            continue
+
+        keys.add(key)
+        dataset.append(blob)
+
+    return dataset
 
 def save_entities() -> None:
     blobs = [
@@ -81,40 +102,29 @@ def save_entities() -> None:
         for text in load_data(os.path.join(WORKSPACE, '3', 'dev-ents.txt'))
     ]
 
-    current_size = 0
-
     blob_storage = os.path.join(WORKSPACE, '4', 'ents.json')
     if os.path.exists(blob_storage):
-        with open(blob_storage, 'r', encoding='utf-8') as blob_outputs:
-            current_data = json.loads(blob_outputs.read())
+        blobs.extend(
+            json.loads(load_document(blob_storage))
+        )
 
-        current_size = len(current_data)
-        blobs.extend(current_data)
-
-    keys = set()
-
-    dataset = []
-    for blob in blobs:
-        key = blob['text']
-        if key in keys:
-            continue
-
-        keys.add(key)
-        dataset.append(blob)
+    dataset = uniq(blobs)
 
     save_document(
         blob_storage,
         json.dumps(dataset, indent=2)
     )
 
-    print('#rows:', len(dataset) - current_size)
-
     config = load_config()['annotations']
     if config['output-iob']:
         output_iob_for_entities(dataset)
 
-    redacted_dataset = set(load_data(os.path.join(WORKSPACE, '3', 'dev-ents-redacted.txt')))
-    append_data(os.path.join(WORKSPACE, '4', 'ents-redacted.txt'), redacted_dataset)
+    append_data(
+        os.path.join(WORKSPACE, '4', 'ents-redacted.txt'),
+        set(
+            load_data(os.path.join(WORKSPACE, '3', 'dev-ents-redacted.txt'))
+        )
+    )
 
 def save_relations() -> None:
     with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'r', encoding='utf-8') as relation_outputs:
