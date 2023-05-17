@@ -10,7 +10,6 @@ from ...labelers.iob import Labeler
 from ..utils import imports
 from ..utils.filesystem import load_data, \
                                append_data, \
-                               save_data, \
                                save_document
 
 
@@ -68,7 +67,8 @@ def output_iob_for_entities(blobs: List[Dict[str, Any]]) -> None:
                     }
                 )
         except:
-            print('* record', i, 'in `ents.json` could not be converted to iob. please check your `utils.sentence_tokenizer` method to ensure singular tokens.')
+            print('* record', i, 'in `ents.json` could not be converted to iob.')
+            print(' - please check your `utils.sentence_tokenizer` method to ensure singular tokens.')
 
     save_document(
         os.path.join(WORKSPACE, '4', 'ents-iob.json'),
@@ -102,17 +102,12 @@ def save_entities() -> None:
         keys.add(key)
         dataset.append(blob)
 
-    save_data(
-        os.path.join(WORKSPACE, '4', 'ents.txt'),
-        list(map(lambda item: item['text'], dataset))
-    )
-
-    print('#rows:', len(dataset) - current_size)
-
     save_document(
         blob_storage,
         json.dumps(dataset, indent=2)
     )
+
+    print('#rows:', len(dataset) - current_size)
 
     config = load_config()['annotations']
     if config['output-iob']:
