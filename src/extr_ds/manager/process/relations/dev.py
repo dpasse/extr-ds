@@ -14,7 +14,7 @@ HTML_PATH = os.path.join(WORKSPACE, '3', 'dev-rels.html')
 DEV_PATH = os.path.join(WORKSPACE, '3', 'dev-rels.json')
 
 def create_dev_files(relation_groups: Dict[str, List[RelationLabel]]) -> None:
-    viewer = HtmlViewer()
+    viewer = HtmlViewer(show_index=True)
     ordered_relations: List[RelationLabel] = []
     for key, items in relation_groups.items():
         viewer.append_header(header=key)

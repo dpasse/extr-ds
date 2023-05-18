@@ -12,7 +12,7 @@ setuptools.setup(
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'extr==0.0.32'
+        'extr==0.0.33'
     ],
     url='https://github.com/dpasse/extr-ds',
     long_description=long_description,
