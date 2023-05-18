@@ -11,7 +11,7 @@ from extr_ds.labelers import IOB
 from extr_ds.transformers import IOBtoEntitiesTransfomer
 
 
-def test_reverse_iob_to_entities():
+def test_reverse_iob_to_entities() -> None:
     extractor = EntityExtractor([
         RegExLabel('PERSON', [
             RegEx([r'(ted johnson iii)'], re.IGNORECASE)
@@ -26,7 +26,6 @@ def test_reverse_iob_to_entities():
         )
 
     text = 'Ted Johnson iii is a pitcher.'
-
 
     rev = IOBtoEntitiesTransfomer()
     observations = IOB(sentence_tokenizer, extractor).label(text)

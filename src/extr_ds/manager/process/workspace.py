@@ -103,7 +103,7 @@ def clean() -> None:
         os.path.join(WORKSPACE, '4', 'ents.json'),
         os.path.join(WORKSPACE, '4', 'ents-iob.json'),
         os.path.join(WORKSPACE, '4', 'ents-redacted.txt'),
-        os.path.join(WORKSPACE, '4', 'rels.txt'),
+        os.path.join(WORKSPACE, '4', 'rels.json'),
     ]
 
     for file in files:

@@ -25,12 +25,15 @@ def get_extractor() -> EntityExtractor:
     return create_entity_extractor(labels.entity_patterns, labels.kb)
 
 def annotate_file(file_path: str) -> Annotations:
+    utils = imports.load_file(
+        'utils',
+        os.path.join(WORKSPACE, 'utils.py')
+    )
+
     entity_extractor = get_extractor()
-    utils = imports.load_file('utils', os.path.join(WORKSPACE, 'utils.py'))
 
     cache = Annotations()
     text_by_label: Dict[str, Set[str]] = {}
-
     for row in load_data(file_path):
         text = cast(str, utils.transform_text(row))
         entities = entity_extractor.get_entities(text)
@@ -55,7 +58,9 @@ def annotate_file(file_path: str) -> Annotations:
     return cache
 
 def annotate() -> None:
-    cache = annotate_file(os.path.join(WORKSPACE, '2', 'dev.txt'))
+    cache = annotate_file(
+        os.path.join(WORKSPACE, '2', 'dev.txt')
+    )
 
     save_data(
         os.path.join(WORKSPACE, '3', 'dev-ents.txt'),

@@ -97,16 +97,16 @@ def uniq(blobs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return dataset
 
 def save_entities() -> None:
+    blob_storage = os.path.join(WORKSPACE, '4', 'ents.json')
+
     blobs = [
         entity_text_annotation_to_json(text)
         for text in load_data(os.path.join(WORKSPACE, '3', 'dev-ents.txt'))
     ]
 
-    blob_storage = os.path.join(WORKSPACE, '4', 'ents.json')
-    if os.path.exists(blob_storage):
-        blobs.extend(
-            json.loads(load_document(blob_storage))
-        )
+    blobs.extend(
+        json.loads(load_document(blob_storage, default_value='[]'))
+    )
 
     dataset = uniq(blobs)
 
@@ -127,15 +127,18 @@ def save_entities() -> None:
     )
 
 def save_relations() -> None:
-    with open(os.path.join(WORKSPACE, '3', 'dev-rels.json'), 'r', encoding='utf-8') as relation_outputs:
-        data = [row for row in json.loads(relation_outputs.read()) if not 'attribute' in row]
+    data = [
+        row
+        for row in json.loads(
+            load_document(os.path.join(WORKSPACE, '3', 'dev-rels.json'), '[]')
+        )
+        if not 'attribute' in row
+    ]
 
     output_path = os.path.join(WORKSPACE, '4', 'rels.json')
-    if os.path.exists(output_path):
-        with open(output_path, 'r', encoding='utf-8') as relation_outputs:
-            current_data = json.loads(relation_outputs.read())
-
-        data.extend(current_data)
+    data.extend(
+        json.loads(load_document(output_path, '[]'))
+    )
 
     lookup: Dict[str, Dict[str, Any]] = {}
     for row in data:

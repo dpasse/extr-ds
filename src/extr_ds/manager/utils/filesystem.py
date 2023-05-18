@@ -3,9 +3,11 @@ from typing import List, Set, Union
 import os
 
 
-def load_document(file_path: str) -> str:
-    with open(file_path, 'r', encoding='utf-8') as input_file:
-        document = input_file.read()
+def load_document(file_path: str, default_value = '') -> str:
+    document = default_value
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as input_file:
+            document = input_file.read()
 
     return document
 

@@ -3,6 +3,7 @@ import os
 import re
 import json
 
+from extr.entities.viewers import HtmlViewer
 from ..workspace import load_config, WORKSPACE
 from ...utils.filesystem import load_data, save_data, save_document, load_document
 
@@ -32,37 +33,17 @@ def create_redacted_file(annotations: List[str]) -> None:
     )
 
 def create_parsed_by_file(text_by_label: Dict[str, List[str]]) -> None:
-    stats_path = os.path.join(WORKSPACE, '3', 'dev-ents.stats.json')
-    with open(stats_path, 'w', encoding='UTF8') as dev_stats:
-        dev_stats.write(json.dumps(text_by_label, indent=2))
+    save_document(
+        os.path.join(WORKSPACE, '3', 'dev-ents.stats.json'),
+        json.dumps(text_by_label, indent=2)
+    )
 
 def create_html_file(annotations: List[str]) -> None:
-    styles = """
-p { margin: 5px; line-height: 45px; }
-span.entity { border: 1px solid black; border-radius: 5px; padding: 5px; margin: 3px; cursor: pointer; }
-span.label { font-weight: bold; padding: 3px; color: black; }
-"""
-
-    custom_styles_path = os.path.join(WORKSPACE, 'styles.css')
-    if os.path.exists(custom_styles_path):
-        styles += load_document(custom_styles_path)
-
-    rows = '<hr />\n'.join(
-        [f'<p>{annotation}</p>' for annotation in annotations]
+    custom_styles = load_document(
+        os.path.join(WORKSPACE, 'styles.css')
     )
 
     save_document(
         os.path.join(WORKSPACE, '3', 'dev-ents.html'),
-        """
-<html>
-    <head>
-        <style>
-            """ + \
-            styles + \
-            """
-        </style>
-    </head>
-    <body>""" + rows + """</body>
-</html>
-"""
+        HtmlViewer(annotations=annotations).create_view(custom_styles)
     )
