@@ -54,18 +54,17 @@ class RelationLabeler(ABC):
         self._relation_annotator = relation_annotator
 
     @abstractmethod
-    def label(self, text: str, entities: List[Entity], offset: int = 0) -> List[RelationLabel]:
+    def label(self, text: str, entities: List[Entity]) -> List[RelationLabel]:
         pass
 
-    def create_relation_labels(self, text: str, relations: List[Relation], offset: int = 0) -> List[RelationLabel]:
+    def create_relation_labels(self, text: str, relations: List[Relation]) -> List[RelationLabel]:
         relation_labels: List[RelationLabel] = []
         for relation in relations:
             relation_labels.append(
                 RelationLabel(
                     self._relation_annotator.annotate(
                         text,
-                        relation,
-                        offset
+                        relation
                     ),
                     relation=relation
                 )
@@ -84,12 +83,11 @@ class BaseRelationLabeler(RelationLabeler):
     def supported_entity_labels(self) -> Set[str]:
         return self._relation_builder.entity_labels
 
-    def label(self, text: str, entities: List[Entity], offset: int = 0) -> List[RelationLabel]:
+    def label(self, text: str, entities: List[Entity]) -> List[RelationLabel]:
         relations = self._relation_builder.create_relations(entities)
         return self.create_relation_labels(
             text,
-            relations,
-            offset
+            relations
         )
 
 class RuleBasedRelationLabeler(RelationLabeler):
@@ -100,15 +98,14 @@ class RuleBasedRelationLabeler(RelationLabeler):
         self._entity_annotator = EntityAnnotator()
         self._relation_extractor = relation_extractor
 
-    def label(self, text: str, entities: List[Entity], offset: int = 0) -> List[RelationLabel]:
+    def label(self, text: str, entities: List[Entity]) -> List[RelationLabel]:
         relations = self._relation_extractor.extract(
             self._entity_annotator.annotate(text, entities)
         )
 
         return self.create_relation_labels(
             text,
-            relations,
-            offset
+            relations
         )
 
 class RelationClassification:
@@ -120,7 +117,7 @@ class RelationClassification:
         self._base_labeler = base_labeler
         self._relation_labelers: List[RelationLabeler] = [self._base_labeler] + relation_labelers
 
-    def label(self, text: str, offset: int = 0) -> List[RelationLabel]:
+    def label(self, text: str) -> List[RelationLabel]:
         entities = []
         for i, entity in enumerate(self._entity_extractor.get_entities(text)):
             entity.identifier = i
@@ -130,7 +127,7 @@ class RelationClassification:
 
         relation_labels = {}
         for labeler in self._relation_labelers:
-            for relation_label in labeler.label(text, entities, offset):
+            for relation_label in labeler.label(text, entities):
                 relation_labels[relation_label.relation.key] = relation_label
 
         return list(relation_labels.values())
