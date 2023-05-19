@@ -1,5 +1,6 @@
-from typing import Callable, Dict, List, Tuple
-from extr import Relation, Entity, TokenGroup
+from collections import defaultdict
+from typing import Callable, List, Tuple, DefaultDict
+from extr import Relation, Entity
 from extr.entities import EntityExtractor, \
                           EntityAnnotator
 from extr.relations import RelationExtractor, RelationAnnotator
@@ -7,6 +8,57 @@ from extr.tokenizers import tokenizer
 from extr.utils import Query
 from ..models import RelationLabel
 
+
+class RelationBuilder:
+    def __init__(self, relation_formats: List[Tuple[str, str, str]]):
+        self._relation_formats = relation_formats
+
+        self._entity_labels = set()
+        for e1, e2, _ in relation_formats:
+            self._entity_labels.add(e1)
+            self._entity_labels.add(e2)
+
+        self._relation_annotator = RelationAnnotator()
+
+    def filter_entities(self, entities: List[Entity]) -> List[Entity]:
+        return Query(entities) \
+            .filter(lambda entity: entity.label in self._entity_labels) \
+            .tolist()
+
+    def create_relations(self, entities: List[Entity]) -> List[Relation]:
+        entity_mapping: DefaultDict[str, List[str]] = defaultdict(list)
+        for entity in entities:
+            entity_mapping[entity.label].append(entity)
+
+        relations: List[Relation] = []
+        for e1, e2, default_label in self._relation_formats:
+            for e1_entity in entity_mapping[e1]:
+                for e2_entity in entity_mapping[e2]:
+                    relation = Relation(
+                        default_label,
+                        e1_entity,
+                        e2_entity
+                    )
+
+                    relations.append(relation)
+
+        return relations
+
+    def create_relation_labels(self, text: str, relations: List[Relation], offset: int = 0) -> List[RelationLabel]:
+        relation_labels: List[RelationLabel] = []
+        for relation in relations:
+            relation_labels.append(
+                RelationLabel(
+                    self._relation_annotator.annotate(
+                        text,
+                        relation,
+                        offset
+                    ).strip(),
+                    relation=relation
+                )
+            )
+
+        return relation_labels
 
 class RelationClassification:
     def __init__(self,
@@ -18,80 +70,37 @@ class RelationClassification:
         self._sentence_tokenizer = sentence_tokenizer
         self._entity_extractor = entity_extractor
         self._relation_extractor = relation_extractor
-        self._no_relations = no_relations
-
-        self._entities_we_care_about = set()
-        for e1, e2, _ in self._no_relations:
-            self._entities_we_care_about.add(e1)
-            self._entities_we_care_about.add(e2)
-
+        self._relation_builder = RelationBuilder(no_relations)
         self._entity_annotator = EntityAnnotator()
         self._relation_annotator = relation_annotator
 
     def label(self, text: str) -> List[RelationLabel]:
-        found_entities = Query(self._entity_extractor.get_entities(text)) \
-            .filter(lambda entity: entity.label in self._entities_we_care_about) \
-            .tolist()
+        found_entities = self._relation_builder.filter_entities(
+            self._entity_extractor.get_entities(text)
+        )
 
         found_relations = self._relation_extractor.extract(
             self._entity_annotator.annotate(text, found_entities)
         )
 
-        def get_entities_in_token_group(token_group: TokenGroup) -> List[Entity]:
-            return Query(found_entities) \
-                .filter(token_group.contains) \
-                .tolist()
-
-        def get_relations_in_token_group(token_group: TokenGroup) -> List[Relation]:
-            return Query(found_relations) \
-                .filter(lambda relation: (
-                    token_group.contains(relation.e1) and \
-                    token_group.contains(relation.e2)
-                )) \
-                .tolist()
-
         relation_labels: List[RelationLabel] = []
         for token_group in tokenizer(text, self._sentence_tokenizer(text)):
-            relation_mapping = self._get_mappings(
-                get_entities_in_token_group(token_group),
-                get_relations_in_token_group(token_group)
+            relations = self._relation_builder.create_relations(
+                list(token_group.find_entities(found_entities))
             )
 
-            offset = token_group.location.start
-            for relation in relation_mapping.values():
-                relation_labels.append(
-                    RelationLabel(
-                        self._relation_annotator.annotate(
-                            token_group.sentence,
-                            relation,
-                            offset
-                        ).strip(),
-                        relation
-                    )
+            relation_mapping = Query(relations) \
+                .todict(lambda r: r.create_key(r.e1, r.e2))
+
+            for relation in token_group.find_relations(found_relations):
+                relation_mapping[relation.key] = relation
+
+            relation_labels.extend(
+                self._relation_builder.create_relation_labels(
+                    token_group.sentence,
+                    list(relation_mapping.values()),
+                    offset=token_group.location.start
                 )
+            )
 
         return relation_labels
-
-    def _get_mappings(self, entities_in_sentence: List[Entity], relations_in_sentence: List[Relation]) -> Dict[str, Relation]:
-        def get_entities_for_label(label: str) -> List[Entity]:
-            return Query(entities_in_sentence) \
-                .filter(lambda e: e.label == label) \
-                .tolist()
-
-        relation_mapping: Dict[str, Relation] = {}
-        for entity1_label, entity2_label, label in self._no_relations:
-            e1s = get_entities_for_label(entity1_label)
-            e2s = get_entities_for_label(entity2_label)
-            for e1 in e1s:
-                for e2 in e2s:
-                    key = Relation.create_key(e1, e2)
-                    relation_mapping[key] = Relation(
-                        label,
-                        e1,
-                        e2
-                    )
-
-        for relation in relations_in_sentence:
-            relation_mapping[relation.key] = relation
-
-        return relation_mapping

@@ -19,7 +19,11 @@ def get_labeler(sentence_tokenizer: Callable[[str], List[List[str]]]) -> Relatio
         os.path.join(WORKSPACE, 'labels.py')
     )
 
-    entity_extractor = create_entity_extractor(labels.entity_patterns, labels.kb)
+    entity_extractor = create_entity_extractor(
+        labels.entity_patterns,
+        labels.kb
+    )
+
     relation_extractor = RelationExtractor(labels.relation_patterns)
 
     return RelationClassification(
