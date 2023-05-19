@@ -1,10 +1,10 @@
+from abc import ABC, abstractmethod
+from typing import List, Tuple, DefaultDict, Set
 from collections import defaultdict
-from typing import Callable, List, Tuple, DefaultDict
 from extr import Relation, Entity
-from extr.entities import EntityExtractor, \
+from extr.entities import AbstractEntityExtractor, \
                           EntityAnnotator
 from extr.relations import RelationExtractor, RelationAnnotator
-from extr.tokenizers import tokenizer
 from extr.utils import Query
 from ..models import RelationLabel
 
@@ -20,9 +20,13 @@ class RelationBuilder:
 
         self._relation_annotator = RelationAnnotator()
 
+    @property
+    def entity_labels(self) -> Set[str]:
+        return self._entity_labels
+
     def filter_entities(self, entities: List[Entity]) -> List[Entity]:
         return Query(entities) \
-            .filter(lambda entity: entity.label in self._entity_labels) \
+            .filter(lambda entity: entity.label in self.entity_labels) \
             .tolist()
 
     def create_relations(self, entities: List[Entity]) -> List[Relation]:
@@ -44,6 +48,15 @@ class RelationBuilder:
 
         return relations
 
+class RelationLabeler(ABC):
+    def __init__(self,
+                 relation_annotator = RelationAnnotator()):
+        self._relation_annotator = relation_annotator
+
+    @abstractmethod
+    def label(self, text: str, entities: List[Entity], offset: int = 0) -> List[RelationLabel]:
+        pass
+
     def create_relation_labels(self, text: str, relations: List[Relation], offset: int = 0) -> List[RelationLabel]:
         relation_labels: List[RelationLabel] = []
         for relation in relations:
@@ -53,54 +66,71 @@ class RelationBuilder:
                         text,
                         relation,
                         offset
-                    ).strip(),
+                    ),
                     relation=relation
                 )
             )
 
         return relation_labels
 
+class BaseRelationLabeler(RelationLabeler):
+    def __init__(self,
+                 relation_formats: List[Tuple[str, str, str]],
+                 relation_annotator = RelationAnnotator()):
+        super().__init__(relation_annotator)
+        self._relation_builder = RelationBuilder(relation_formats)
+
+    @property
+    def supported_entity_labels(self) -> Set[str]:
+        return self._relation_builder.entity_labels
+
+    def label(self, text: str, entities: List[Entity], offset: int = 0) -> List[RelationLabel]:
+        relations = self._relation_builder.create_relations(entities)
+        return self.create_relation_labels(
+            text,
+            relations,
+            offset
+        )
+
+class RuleBasedRelationLabeler(RelationLabeler):
+    def __init__(self,
+                 relation_extractor: RelationExtractor,
+                 relation_annotator = RelationAnnotator()):
+        super().__init__(relation_annotator)
+        self._entity_annotator = EntityAnnotator()
+        self._relation_extractor = relation_extractor
+
+    def label(self, text: str, entities: List[Entity], offset: int = 0) -> List[RelationLabel]:
+        relations = self._relation_extractor.extract(
+            self._entity_annotator.annotate(text, entities)
+        )
+
+        return self.create_relation_labels(
+            text,
+            relations,
+            offset
+        )
+
 class RelationClassification:
     def __init__(self,
-                 sentence_tokenizer: Callable[[str], List[List[str]]],
-                 entity_extractor: EntityExtractor,
-                 relation_extractor: RelationExtractor,
-                 no_relations: List[Tuple[str, str, str]],
-                 relation_annotator = RelationAnnotator()):
-        self._sentence_tokenizer = sentence_tokenizer
+                 entity_extractor: AbstractEntityExtractor,
+                 base_labeler: BaseRelationLabeler,
+                 relation_labelers: List[RelationLabeler]):
         self._entity_extractor = entity_extractor
-        self._relation_extractor = relation_extractor
-        self._relation_builder = RelationBuilder(no_relations)
-        self._entity_annotator = EntityAnnotator()
-        self._relation_annotator = relation_annotator
+        self._base_labeler = base_labeler
+        self._relation_labelers: List[RelationLabeler] = [self._base_labeler] + relation_labelers
 
-    def label(self, text: str) -> List[RelationLabel]:
-        found_entities = self._relation_builder.filter_entities(
-            self._entity_extractor.get_entities(text)
-        )
+    def label(self, text: str, offset: int = 0) -> List[RelationLabel]:
+        entities = []
+        for i, entity in enumerate(self._entity_extractor.get_entities(text)):
+            entity.identifier = i
 
-        found_relations = self._relation_extractor.extract(
-            self._entity_annotator.annotate(text, found_entities)
-        )
+            if entity.label in self._base_labeler.supported_entity_labels:
+                entities.append(entity)
 
-        relation_labels: List[RelationLabel] = []
-        for token_group in tokenizer(text, self._sentence_tokenizer(text)):
-            relations = self._relation_builder.create_relations(
-                list(token_group.find_entities(found_entities))
-            )
+        relation_labels = {}
+        for labeler in self._relation_labelers:
+            for relation_label in labeler.label(text, entities, offset):
+                relation_labels[relation_label.relation.key] = relation_label
 
-            relation_mapping = Query(relations) \
-                .todict(lambda r: r.create_key(r.e1, r.e2))
-
-            for relation in token_group.find_relations(found_relations):
-                relation_mapping[relation.key] = relation
-
-            relation_labels.extend(
-                self._relation_builder.create_relation_labels(
-                    token_group.sentence,
-                    list(relation_mapping.values()),
-                    offset=token_group.location.start
-                )
-            )
-
-        return relation_labels
+        return list(relation_labels.values())

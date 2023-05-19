@@ -18,6 +18,7 @@ class IOBtoEntitiesTransfomer:
                 if entity_start >= 0:
                     entities.append(
                         self._create_entity(
+                            len(entities) + 1,
                             label.token_group.sentence,
                             entity_start,
                             *observations[i-1]
@@ -35,6 +36,7 @@ class IOBtoEntitiesTransfomer:
                 if entity_start >= 0:
                     entities.append(
                         self._create_entity(
+                            len(entities) + 1,
                             label.token_group.sentence,
                             entity_start,
                             *observations[i-1]
@@ -48,6 +50,7 @@ class IOBtoEntitiesTransfomer:
         if i > 0 and entity_start >= 0:
             entities.append(
                 self._create_entity(
+                    len(entities) + 1,
                     label.token_group.sentence,
                     entity_start,
                     *observations[i-1]
@@ -56,11 +59,12 @@ class IOBtoEntitiesTransfomer:
 
         return entities
 
-    def _create_entity(self, sentence: str, start: int, previous_token: Token, previous_annotation: str) -> Entity:
+    def _create_entity(self, identifier: int, sentence: str, start: int, previous_token: Token, previous_annotation: str) -> Entity:
         end = previous_token.location.end
         text = sentence[start:end]
 
         return Entity(
+            identifier,
             re.sub(r'^[BI]-', '', previous_annotation),
             text,
             location=Location(start, end)

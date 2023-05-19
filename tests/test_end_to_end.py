@@ -8,9 +8,9 @@ from extr import RegEx, RegExLabel, EntityExtractor, RegExRelationLabelBuilder, 
 sys.path.insert(0, os.path.join('../src'))
 
 from extr_ds.labelers import IOB, RelationClassification
+from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
 
-
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_end_to_end():
     text = 'Walk; Mountcastle to 3B; Odor to 2B'
 
@@ -28,57 +28,63 @@ def test_end_to_end():
 
     entity_extractor = EntityExtractor(entity_patterns)
 
-    ## mock sentence tokenizer
-    def sentence_tokenizer(text: str) -> Generator[List[str], None, None]:
+    def word_tokenizer(text: str) -> List[str]:
         sentences = text.split(';')
 
+        tokens = []
         for i, sentence in enumerate(sentences):
-            tokens = sentence.strip().split(' ')
+            tokens.extend(sentence.strip().split(' '))
 
             if i + 1 != len(sentences):
                 tokens.append(';')
 
-            yield tokens
+        return tokens
 
-    observations = IOB(sentence_tokenizer, entity_extractor).label(text)
+    observation = IOB(
+        word_tokenizer,
+        entity_extractor
+    ).label(text)
 
-    labels = list(
-        map(
-            lambda item: (
-                list(map(lambda tk: tk.text, item.tokens)),
-                item.labels
-            ),
-            observations
-        )
+    labels = (
+        list(map(lambda tk: tk.text, observation.tokens)),
+        observation.labels
     )
 
     print('IOB:')
     print(labels)
 
-    ## player to base relationship patterns
-    player_to_base_relationship = RegExRelationLabelBuilder('is_on') \
-        .add_e1_to_e2(
-            'PLAYER',
-            [
-                r'\s+to\s+',
-            ],
-            'BASE'
-        ) \
-        .build()
+    base_relation_labeler = BaseRelationLabeler(
+        relation_formats=[('PLAYER', 'BASE', 'NO_RELATION')]
+    )
 
-    relation_extractor = RelationExtractor([
-        player_to_base_relationship
-    ])
+    rule_based_relation_labeler = RuleBasedRelationLabeler(
+        RelationExtractor([
+            RegExRelationLabelBuilder('is_on') \
+                .add_e1_to_e2(
+                    'PLAYER',
+                    [
+                        r'\s+to\s+',
+                    ],
+                    'BASE'
+                ) \
+                .build()
+        ])
+    )
 
     labeler = RelationClassification(
-        sentence_tokenizer,
         entity_extractor,
-        relation_extractor,
-        [
-            ('PLAYER', 'BASE', 'NO_RELATION')
-        ],
+        base_relation_labeler,
+        relation_labelers=[
+            rule_based_relation_labeler
+        ]
     )
 
     relations = labeler.label(text)
-    print('Relations:')
-    print(relations)
+    assert len(relations) == 4
+
+    ## [
+    ##    <RelationLabel sentence="Walk; Mountcastle to 3B; <e1>Odor</e1> to <e2>2B</e2>" label="is_on">,
+    ##    <RelationLabel sentence="Walk; Mountcastle to <e2>3B</e2>; <e1>Odor</e1> to 2B" label="NO_RELATION">,
+    ##    <RelationLabel sentence="Walk; <e1>Mountcastle</e1> to 3B; Odor to <e2>2B</e2>" label="NO_RELATION">,
+    ##    <RelationLabel sentence="Walk; <e1>Mountcastle</e1> to <e2>3B</e2>; Odor to 2B" label="is_on">
+    ## ]

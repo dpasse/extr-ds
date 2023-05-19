@@ -18,21 +18,13 @@ def test_reverse_iob_to_entities() -> None:
         ]),
     ])
 
-    def sentence_tokenizer(_: str) -> Generator[List[str], None, None]:
-        return (
-            record for record in [
-                ['Ted', 'Johnson', 'iii', 'is', 'a', 'pitcher', '.'],
-            ]
-        )
+    def word_tokenizer(_: str) -> List[str]:
+        return ['Ted', 'Johnson', 'iii', 'is', 'a', 'pitcher', '.']
 
     text = 'Ted Johnson iii is a pitcher.'
 
-    rev = IOBtoEntitiesTransfomer()
-    observations = IOB(sentence_tokenizer, extractor).label(text)
-
-    entities: List[Entity] = []
-    for label in observations:
-        entities.extend(rev.unlabel(label))
+    observation = IOB(word_tokenizer, extractor).label(text)
+    entities: List[Entity] = IOBtoEntitiesTransfomer().unlabel(observation)
 
     assert len(entities) == 1
     assert entities[0].text == 'Ted Johnson iii'

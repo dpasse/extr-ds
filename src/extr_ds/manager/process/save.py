@@ -42,8 +42,9 @@ def entity_text_annotation_to_json(text_annotation: str) -> Dict[str, Any]:
 
     return blob
 
-def blob_to_entity(blob: Dict[str, Any]) -> Entity:
+def blob_to_entity(identifier: int, blob: Dict[str, Any]) -> Entity:
     return Entity(
+        identifier=identifier,
         label=blob['label'],
         text=blob['text'],
         location=Location(start=blob['start'], end=blob['end'])
@@ -60,22 +61,27 @@ def output_iob_for_entities(blobs: List[Dict[str, Any]]) -> None:
 
     utils = imports.load_file('utils', os.path.join(WORKSPACE, 'utils.py'))
     iob_labeler = Labeler(
-        cast(Callable[[str], List[List[str]]], utils.sentence_tokenizer)
+        cast(Callable[[str], List[str]], utils.word_tokenizer)
     )
 
     for i, blob in enumerate(blobs):
         try:
-            entities = list(map(blob_to_entity, blob['entities']))
-            for label in iob_labeler.label(blob['text'], entities):
-                iob_dataset.append(
-                    {
-                        'tokens': [tk.text for tk in label.tokens],
-                        'labels': label.labels
-                    }
+            entities = []
+            for i, item in enumerate(blob['entities']):
+                entities.append(
+                    blob_to_entity(i+1, item)
                 )
+
+            label = iob_labeler.label(blob['text'], entities)
+            iob_dataset.append(
+                {
+                    'tokens': [tk.text for tk in label.tokens],
+                    'labels': label.labels
+                }
+            )
         except:
             print('* record', i, 'in `ents.json` could not be converted to iob.')
-            print(' - please check your `utils.sentence_tokenizer` method to ensure singular tokens.')
+            print(' - please check your `utils.word_tokenizer` method to ensure singular tokens.')
 
     save_document(
         os.path.join(WORKSPACE, '4', 'ents-iob.json'),

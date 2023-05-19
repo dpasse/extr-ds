@@ -73,10 +73,8 @@ def create_utils_file():
     src = """from typing import List
 
 
-def sentence_tokenizer(text: str) -> List[List[str]]:
-    return [
-        text.split(' ')
-    ]
+def word_tokenizer(text: str) -> List[str]:
+    return text.split(' ')
 
 def transform_text(text: str) -> str:
     return text

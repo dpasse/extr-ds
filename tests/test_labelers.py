@@ -7,6 +7,7 @@ from extr import RegEx, RegExLabel, EntityExtractor, RegExRelationLabelBuilder, 
 sys.path.insert(0, os.path.join('../src'))
 
 from extr_ds.labelers import IOB, RelationClassification
+from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
 
 
 def test_iob_label():
@@ -19,24 +20,16 @@ def test_iob_label():
         ]),
     ])
 
-    def sentence_tokenizer(_: str) -> Generator[List[str], None, None]:
-        return (
-            record for record in [
-                ['Ted', 'Johnson', 'is', 'a', 'pitcher', '.'],
-                ['Ted', 'went', 'to', 'my', 'school', '.']
-            ]
-        )
+    def word_tokenizer(_: str) -> List[str]:
+        return ['Ted', 'Johnson', 'is', 'a', 'pitcher', '.']
 
-    text = 'Ted Johnson is a pitcher. Ted went to my school.'
+    text = 'Ted Johnson is a pitcher.'
 
-    observations = IOB(sentence_tokenizer, extractor).label(text)
+    iob_labeler = IOB(word_tokenizer, extractor)
 
-    expected = [
-        ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O'],
-        ['B-PERSON', 'O', 'O', 'O', 'O', 'O']
-    ]
+    observation = iob_labeler.label(text)
 
-    assert list(map(lambda item: item.labels, observations)) == expected
+    assert observation.labels == ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O']
 
 def test_iob_label_2():
     extractor = EntityExtractor([
@@ -45,33 +38,19 @@ def test_iob_label_2():
         ]),
     ])
 
-    def sentence_tokenizer(_: str) -> Generator[List[str], None, None]:
-        return (
-            record for record in [
-                ['Ted', 'Johnson', 'iii', 'is', 'a', 'pitcher', '.'],
-            ]
-        )
+    def word_tokenizer(_: str) -> List[str]:
+        return ['Ted', 'Johnson', 'iii', 'is', 'a', 'pitcher', '.']
 
     text = 'Ted Johnson iii is a pitcher.'
 
-    observations = IOB(sentence_tokenizer, extractor).label(text)
-
-    expected = [
-        ['B-PERSON', 'I-PERSON', 'I-PERSON', 'O', 'O', 'O', 'O'],
-    ]
-
-    assert list(map(lambda item: item.labels, observations)) == expected
+    observation = IOB(word_tokenizer, extractor).label(text)
+    assert observation.labels == ['B-PERSON', 'I-PERSON', 'I-PERSON', 'O', 'O', 'O', 'O']
 
 def test_relation_label():
-    text = 'Ted Johnson is a pitcher. Bob is not a pitcher.'
-
-    def sentence_tokenizer(_: str) -> Generator[List[str], None, None]:
-        return (
-            record for record in [
-                ['Ted', 'Johnson', 'is', 'a', 'pitcher', '.'],
-                ['Bob', 'is', 'not', 'a', 'pitcher', '.']
-            ]
-        )
+    texts = [
+        'Ted Johnson is a pitcher.',
+        'Bob is not a pitcher.'
+    ]
 
     person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
         .add_e1_to_e2(
@@ -83,28 +62,38 @@ def test_relation_label():
         ) \
         .build()
 
-    labeler = RelationClassification(
-        sentence_tokenizer,
-        EntityExtractor([
-            RegExLabel('PERSON', [
-                RegEx([r'(ted johnson|bob)'], re.IGNORECASE)
-            ]),
-            RegExLabel('POSITION', [
-                RegEx([r'pitcher'], re.IGNORECASE)
-            ]),
-        ]),
-        RelationExtractor([person_to_position_relationship]),
-        [('PERSON', 'POSITION', 'NO_RELATION')],
+    base_relation_labeler = BaseRelationLabeler(
+        relation_formats=[('PERSON', 'POSITION', 'NO_RELATION')]
     )
 
-    labels = labeler.label(text)
+    rule_based_relation_labeler = RuleBasedRelationLabeler(
+        RelationExtractor([person_to_position_relationship])
+    )
+
+    entity_extractor = EntityExtractor([
+        RegExLabel('PERSON', [
+            RegEx([r'(ted johnson|bob)'], re.IGNORECASE)
+        ]),
+        RegExLabel('POSITION', [
+            RegEx([r'pitcher'], re.IGNORECASE)
+        ]),
+    ])
+
+    labeler = RelationClassification(
+        entity_extractor,
+        base_relation_labeler,
+        relation_labelers=[
+            rule_based_relation_labeler
+        ]
+    )
 
     annotations = []
     classification_labels = []
-    for relation_label in labels:
-        annotations.append(relation_label.sentence)
-        classification_labels.append(relation_label.label)
 
+    for text in texts:
+        for relation_label in labeler.label(text):
+            annotations.append(relation_label.sentence)
+            classification_labels.append(relation_label.label)
 
     assert annotations == [
         '<e1>Ted Johnson</e1> is a <e2>pitcher</e2>.',

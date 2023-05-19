@@ -65,7 +65,7 @@ extr-ds --help
 ## Example
 
 ```python
-text = 'Ted Johnson is a pitcher. Ted went to my school.'
+text = 'Ted Johnson is a pitcher.'
 ```
 
 ### 1. Label Entities for Named-Entity Recognition Task (NER)
@@ -85,12 +85,9 @@ entity_extractor = EntityExtactor([
 ])
 
 sentence_tokenizer = ## 3rd party tokenizer ##
-labels = IOB(sentence_tokenizer, entity_extractor).label(text)
+label = IOB(sentence_tokenizer, entity_extractor).label(text)
 
-## labels ==  [
-##     <Label tokens=..., labels=['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O']>,
-##     <Label tokens=..., labels=['B-PERSON', 'O', 'O', 'O', 'O', 'O']>
-## ]
+## label == <Label tokens=..., labels=['B-PERSON', 'I-PERSON', 'O', 'O', 'B-POSITION', 'O']>
 ```
 
 ### 2. Annotate for Relation Extraction Task (RE)
@@ -100,6 +97,8 @@ from extr.entities import EntityExtractor
 from extr.relations import RegExRelationLabelBuilder, \
                            RelationExtractor
 from extr_ds.labelers import RelationClassification
+from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
+
 
 person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
     .add_e1_to_e2(
@@ -111,8 +110,17 @@ person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
     ) \
     .build()
 
+base_relation_labeler = BaseRelationLabeler(
+    relation_formats=[
+        ('PERSON', 'POSITION', 'NO_RELATION')
+    ]
+)
+
+rule_based_relation_labeler = RuleBasedRelationLabeler(
+    RelationExtractor([person_to_position_relationship])
+)
+
 labeler = RelationClassification(
-    sentence_tokenizer,
     EntityExtractor([
         RegExLabel('PERSON', [
             RegEx([r'(ted johnson|bob)'], re.IGNORECASE)
@@ -121,8 +129,10 @@ labeler = RelationClassification(
             RegEx([r'pitcher'], re.IGNORECASE)
         ]),
     ]),
-    RelationExtractor([person_to_position_relationship]),
-    [('PERSON', 'POSITION', 'NO_RELATION')],
+    base_relation_labeler,
+    relation_labelers=[
+        rule_based_relation_labeler
+    ]
 )
 
 labels = labeler.label(text)
