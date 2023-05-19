@@ -39,11 +39,11 @@ def annotate_file(file_path: str) -> Annotations:
         entities = entity_extractor.get_entities(text)
 
         cache.text.append(
-            entity_annotator.annotate(text, entities).annotated_text
+            entity_annotator.annotate(text, entities)
         )
 
         cache.html.append(
-            entity_html_annotator.annotate(text, entities).annotated_text
+            entity_html_annotator.annotate(text, entities)
         )
 
         for entity in entities:

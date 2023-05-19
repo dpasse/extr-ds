@@ -1,7 +1,7 @@
 import os
 import sys
 import re
-from typing import Generator, List
+from typing import List
 from extr import RegEx, RegExLabel, EntityExtractor
 from extr.models import Entity
 

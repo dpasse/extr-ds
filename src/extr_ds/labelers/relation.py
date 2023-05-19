@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, DefaultDict, Set
+from typing import List, Tuple, DefaultDict, Set, Optional
 from collections import defaultdict
 from extr import Relation, Entity
 from extr.entities import AbstractEntityExtractor, \
                           EntityAnnotator
-from extr.relations import RelationExtractor, RelationAnnotator
+from extr.relations import RelationExtractor, RelationAnnotator, RelationAnnotatorWithEntityType
 from extr.utils import Query
 from ..models import RelationLabel
 
@@ -17,8 +17,6 @@ class RelationBuilder:
         for e1, e2, _ in relation_formats:
             self._entity_labels.add(e1)
             self._entity_labels.add(e2)
-
-        self._relation_annotator = RelationAnnotator()
 
     @property
     def entity_labels(self) -> Set[str]:
@@ -50,7 +48,7 @@ class RelationBuilder:
 
 class RelationLabeler(ABC):
     def __init__(self,
-                 relation_annotator = RelationAnnotator()):
+                 relation_annotator: RelationAnnotator = RelationAnnotatorWithEntityType()):
         self._relation_annotator = relation_annotator
 
     @abstractmethod
@@ -74,10 +72,10 @@ class RelationLabeler(ABC):
 
 class BaseRelationLabeler(RelationLabeler):
     def __init__(self,
-                 relation_formats: List[Tuple[str, str, str]],
-                 relation_annotator = RelationAnnotator()):
+                 relation_builder: RelationBuilder,
+                 relation_annotator: RelationAnnotator = RelationAnnotatorWithEntityType()):
         super().__init__(relation_annotator)
-        self._relation_builder = RelationBuilder(relation_formats)
+        self._relation_builder = relation_builder
 
     @property
     def supported_entity_labels(self) -> Set[str]:
@@ -93,15 +91,15 @@ class BaseRelationLabeler(RelationLabeler):
 class RuleBasedRelationLabeler(RelationLabeler):
     def __init__(self,
                  relation_extractor: RelationExtractor,
-                 relation_annotator = RelationAnnotator()):
+                 entity_annotator = EntityAnnotator(),
+                 relation_annotator: RelationAnnotator = RelationAnnotatorWithEntityType()):
         super().__init__(relation_annotator)
-        self._entity_annotator = EntityAnnotator()
         self._relation_extractor = relation_extractor
+        self._entity_annotator = entity_annotator
 
     def label(self, text: str, entities: List[Entity]) -> List[RelationLabel]:
-        relations = self._relation_extractor.extract(
-            self._entity_annotator.annotate(text, entities)
-        )
+        annotated_text = self._entity_annotator.annotate(text, entities)
+        relations = self._relation_extractor.extract(annotated_text, entities)
 
         return self.create_relation_labels(
             text,
@@ -112,10 +110,12 @@ class RelationClassification:
     def __init__(self,
                  entity_extractor: AbstractEntityExtractor,
                  base_labeler: BaseRelationLabeler,
-                 relation_labelers: List[RelationLabeler]):
+                 additional_relation_labelers: Optional[List[RelationLabeler]] = None):
         self._entity_extractor = entity_extractor
         self._base_labeler = base_labeler
-        self._relation_labelers: List[RelationLabeler] = [self._base_labeler] + relation_labelers
+        self._relation_labelers: List[RelationLabeler] = [self._base_labeler]
+        if additional_relation_labelers:
+            self._relation_labelers += additional_relation_labelers
 
     def label(self, text: str) -> List[RelationLabel]:
         entities = []

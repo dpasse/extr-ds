@@ -2,13 +2,14 @@ import os
 import re
 import sys
 import pytest
-from typing import Generator, List
+from typing import List
 from extr import RegEx, RegExLabel, EntityExtractor, RegExRelationLabelBuilder, RelationExtractor
 
 sys.path.insert(0, os.path.join('../src'))
 
 from extr_ds.labelers import IOB, RelationClassification
-from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
+from extr_ds.labelers.relation import RelationBuilder, BaseRelationLabeler, RuleBasedRelationLabeler
+
 
 @pytest.mark.skip
 def test_end_to_end():
@@ -54,7 +55,9 @@ def test_end_to_end():
     print(labels)
 
     base_relation_labeler = BaseRelationLabeler(
-        relation_formats=[('PLAYER', 'BASE', 'NO_RELATION')]
+        RelationBuilder(
+            relation_formats=[('PLAYER', 'BASE', 'NO_RELATION')]
+        )
     )
 
     rule_based_relation_labeler = RuleBasedRelationLabeler(

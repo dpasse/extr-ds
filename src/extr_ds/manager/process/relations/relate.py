@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple, cast
 import os
 
 from extr.entities import create_entity_extractor
@@ -6,7 +6,7 @@ from extr.relations import RelationExtractor
 from extr.relations.annotator import RelationAnnotatorWithEntityType
 from extr_ds.models import RelationLabel
 from extr_ds.labelers import RelationClassification
-from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
+from extr_ds.labelers.relation import RelationBuilder, BaseRelationLabeler, RuleBasedRelationLabeler
 
 from .dev import create_dev_files
 from ..workspace import WORKSPACE
@@ -19,13 +19,17 @@ def get_labeler() -> RelationClassification:
         os.path.join(WORKSPACE, 'labels.py')
     )
 
+    relation_formats = cast(List[Tuple[str, str, str]], labels.relation_defaults)
+
     return RelationClassification(
         create_entity_extractor(
             labels.entity_patterns,
             labels.kb
         ),
-        base_labeler=BaseRelationLabeler(labels.relation_defaults),
-        relation_labelers=[
+        base_labeler=BaseRelationLabeler(
+            RelationBuilder(relation_formats=relation_formats)
+        ),
+        additional_relation_labelers=[
             RuleBasedRelationLabeler(
                 relation_extractor=RelationExtractor(labels.relation_patterns),
                 relation_annotator=RelationAnnotatorWithEntityType()

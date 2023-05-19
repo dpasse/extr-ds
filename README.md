@@ -97,7 +97,7 @@ from extr.entities import EntityExtractor
 from extr.relations import RegExRelationLabelBuilder, \
                            RelationExtractor
 from extr_ds.labelers import RelationClassification
-from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
+from extr_ds.labelers.relation import RelationBuilder, BaseRelationLabeler, RuleBasedRelationLabeler
 
 
 person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
@@ -111,9 +111,9 @@ person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
     .build()
 
 base_relation_labeler = BaseRelationLabeler(
-    relation_formats=[
+    RelationBuilder(relation_formats=[
         ('PERSON', 'POSITION', 'NO_RELATION')
-    ]
+    ])
 )
 
 rule_based_relation_labeler = RuleBasedRelationLabeler(

@@ -1,13 +1,13 @@
 import os
 import sys
 import re
-from typing import Generator, List
+from typing import List
 from extr import RegEx, RegExLabel, EntityExtractor, RegExRelationLabelBuilder, RelationExtractor
 
 sys.path.insert(0, os.path.join('../src'))
 
 from extr_ds.labelers import IOB, RelationClassification
-from extr_ds.labelers.relation import BaseRelationLabeler, RuleBasedRelationLabeler
+from extr_ds.labelers.relation import RelationBuilder, BaseRelationLabeler, RuleBasedRelationLabeler
 
 
 def test_iob_label():
@@ -52,38 +52,34 @@ def test_relation_label():
         'Bob is not a pitcher.'
     ]
 
-    person_to_position_relationship = RegExRelationLabelBuilder('is_a') \
-        .add_e1_to_e2(
-            'PERSON',
-            [
-                r'\s+is\s+a\s+',
-            ],
-            'POSITION'
-        ) \
-        .build()
-
-    base_relation_labeler = BaseRelationLabeler(
-        relation_formats=[('PERSON', 'POSITION', 'NO_RELATION')]
-    )
-
-    rule_based_relation_labeler = RuleBasedRelationLabeler(
-        RelationExtractor([person_to_position_relationship])
-    )
-
-    entity_extractor = EntityExtractor([
-        RegExLabel('PERSON', [
-            RegEx([r'(ted johnson|bob)'], re.IGNORECASE)
-        ]),
-        RegExLabel('POSITION', [
-            RegEx([r'pitcher'], re.IGNORECASE)
-        ]),
-    ])
-
     labeler = RelationClassification(
-        entity_extractor,
-        base_relation_labeler,
-        relation_labelers=[
-            rule_based_relation_labeler
+        EntityExtractor([
+            RegExLabel('PERSON', [
+                RegEx([r'(ted johnson|bob)'], re.IGNORECASE)
+            ]),
+            RegExLabel('POSITION', [
+                RegEx([r'pitcher'], re.IGNORECASE)
+            ]),
+        ]),
+        BaseRelationLabeler(
+            RelationBuilder(
+                relation_formats=[('PERSON', 'POSITION', 'NO_RELATION')]
+            )
+        ),
+        additional_relation_labelers=[
+            RuleBasedRelationLabeler(
+                RelationExtractor([
+                    RegExRelationLabelBuilder('is_a') \
+                        .add_e1_to_e2(
+                            'PERSON',
+                            [
+                                r'\s+is\s+a\s+',
+                            ],
+                            'POSITION'
+                        ) \
+                        .build()
+                ])
+            )
         ]
     )
 
@@ -96,8 +92,8 @@ def test_relation_label():
             classification_labels.append(relation_label.label)
 
     assert annotations == [
-        '<e1>Ted Johnson</e1> is a <e2>pitcher</e2>.',
-        '<e1>Bob</e1> is not a <e2>pitcher</e2>.'
+        '<e1:PERSON>Ted Johnson</e1:PERSON> is a <e2:POSITION>pitcher</e2:POSITION>.',
+        '<e1:PERSON>Bob</e1:PERSON> is not a <e2:POSITION>pitcher</e2:POSITION>.',
     ]
 
     assert classification_labels == [
