@@ -82,8 +82,8 @@ def test_end_to_end():
         ]
     )
 
-    relations = labeler.label(text)
-    assert len(relations) == 4
+    results = labeler.label(text)
+    assert len(results.relation_labels) == 4
 
     ## [
     ##    <RelationLabel sentence="Walk; Mountcastle to 3B; <e1>Odor</e1> to <e2>2B</e2>" label="is_on">,

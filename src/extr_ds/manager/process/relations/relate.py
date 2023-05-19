@@ -49,7 +49,8 @@ def relate() -> None:
     for row in load_data(os.path.join(WORKSPACE, '2', 'dev.txt')):
         text = utils.transform_text(row)
 
-        for relation_label in labeler.label(text):
+        results = labeler.label(text)
+        for relation_label in results.relation_labels:
             if not relation_label.definition in relation_groups:
                 relation_groups[relation_label.definition] = []
 

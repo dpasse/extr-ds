@@ -135,9 +135,9 @@ labeler = RelationClassification(
     ]
 )
 
-labels = labeler.label(text)
+results = labeler.label(text)
 
-## labels == [
+## results.relation_labels == [
 ##    <RelationLabel sentence="<e1>Ted Johnson</e1> is a <e2>pitcher</e2>." label="is_a">
 ## ]
 ```

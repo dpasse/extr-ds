@@ -87,7 +87,8 @@ def test_relation_label():
     classification_labels = []
 
     for text in texts:
-        for relation_label in labeler.label(text):
+        results = labeler.label(text)
+        for relation_label in results.relation_labels:
             annotations.append(relation_label.sentence)
             classification_labels.append(relation_label.label)
 

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import List, Tuple, DefaultDict, Set, Optional
 from collections import defaultdict
 from extr import Relation, Entity
@@ -106,6 +107,11 @@ class RuleBasedRelationLabeler(RelationLabeler):
             relations
         )
 
+@dataclass
+class RelationClassificationResult:
+    entities: List[Entity]
+    relation_labels: List[RelationLabel]
+
 class RelationClassification:
     def __init__(self,
                  entity_extractor: AbstractEntityExtractor,
@@ -117,17 +123,20 @@ class RelationClassification:
         if additional_relation_labelers:
             self._relation_labelers += additional_relation_labelers
 
-    def label(self, text: str) -> List[RelationLabel]:
-        entities = []
-        for i, entity in enumerate(self._entity_extractor.get_entities(text)):
-            entity.identifier = i
+    def label(self, text: str) -> RelationClassificationResult:
+        entities = self._entity_extractor.get_entities(text)
 
+        entities_in_relations = []
+        for entity in entities:
             if entity.label in self._base_labeler.supported_entity_labels:
-                entities.append(entity)
+                entities_in_relations.append(entity)
 
         relation_labels = {}
         for labeler in self._relation_labelers:
-            for relation_label in labeler.label(text, entities):
+            for relation_label in labeler.label(text, entities_in_relations):
                 relation_labels[relation_label.relation.key] = relation_label
 
-        return list(relation_labels.values())
+        return RelationClassificationResult(
+            entities=entities,
+            relation_labels=list(relation_labels.values())
+        )
