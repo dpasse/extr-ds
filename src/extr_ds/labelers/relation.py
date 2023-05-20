@@ -112,6 +112,19 @@ class RelationClassificationResult:
     entities: List[Entity]
     relation_labels: List[RelationLabel]
 
+    def totuple(self, exclude: Optional[List[str]] = None) -> Tuple[List[Entity], List[RelationLabel]]:
+        if exclude is None:
+            return (self.entities, self.relation_labels)
+
+        labels_to_include = []
+        for relation_label in self.relation_labels:
+            if relation_label.label in exclude:
+                continue
+
+            labels_to_include.append(relation_label)
+
+        return (self.entities, labels_to_include)
+
 class RelationClassification:
     def __init__(self,
                  entity_extractor: AbstractEntityExtractor,
