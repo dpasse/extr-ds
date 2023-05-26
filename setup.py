@@ -6,13 +6,13 @@ with open('README.md', encoding='utf-8') as f:
 
 setuptools.setup(
     name='extr-ds',
-    version='0.0.80',
+    version='0.0.82',
     keywords='',
     description='Library to quickly build basic datasets for Named Entity Recognition (NER) and Relation Extraction (RE) Machine Learning tasks.',
     packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'extr==0.0.41'
+        'extr==0.0.43'
     ],
     url='https://github.com/dpasse/extr-ds',
     long_description=long_description,

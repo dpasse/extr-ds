@@ -18,7 +18,7 @@ class Labeler():
     def __merge(self, token_group: TokenGroup, entities: List[Entity]) -> Label:
         tokens = list(enumerate(token_group.tokens))
         labels = ['O' for _ in range(len(tokens))]
-        for entity in cast(Iterator[Entity], filter(token_group.contains, entities)):
+        for entity in token_group.find_entities(entities):
             used_counter = 0
 
             for i, token in tokens:
