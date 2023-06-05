@@ -1,4 +1,4 @@
-from typing import List, Callable, Iterator, cast
+from typing import List, Callable
 from extr import Entity, TokenGroup
 from extr.entities import EntityExtractor
 from extr.tokenizers import word_tokenizer
