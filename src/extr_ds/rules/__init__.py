@@ -1,1 +1,3 @@
-from .majority import Majority, InferenceResult
+from .models import InferenceResult
+from .majority import Majority
+from .units import StaticUnit
